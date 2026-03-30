@@ -29,6 +29,10 @@ func (s *Server) createChannel(w http.ResponseWriter, r *http.Request) {
 		respondError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
+	if err := req.Validate(); err != nil {
+		respondValidationError(w, err)
+		return
+	}
 
 	c, err := s.channelRepo.Create(r.Context(), req)
 	if err != nil {
@@ -51,6 +55,10 @@ func (s *Server) updateChannel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	req.ID = id
+	if err := req.Validate(); err != nil {
+		respondValidationError(w, err)
+		return
+	}
 
 	c, err := s.channelRepo.Update(r.Context(), req)
 	if err != nil {
@@ -112,6 +120,10 @@ func (s *Server) createChannelProvider(w http.ResponseWriter, r *http.Request) {
 		respondError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
+	if err := req.Validate(); err != nil {
+		respondValidationError(w, err)
+		return
+	}
 
 	p, err := s.channelProviderRepo.Create(r.Context(), req)
 	if err != nil {
@@ -134,6 +146,10 @@ func (s *Server) updateChannelProvider(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	req.ID = id
+	if err := req.Validate(); err != nil {
+		respondValidationError(w, err)
+		return
+	}
 
 	p, err := s.channelProviderRepo.Update(r.Context(), req)
 	if err != nil {
@@ -201,6 +217,10 @@ func (s *Server) createProviderSetting(w http.ResponseWriter, r *http.Request) {
 		respondError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
+	if err := req.Validate(); err != nil {
+		respondValidationError(w, err)
+		return
+	}
 
 	setting, err := s.providerSettingRepo.Create(r.Context(), req)
 	if err != nil {
@@ -223,6 +243,10 @@ func (s *Server) updateProviderSetting(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	req.ID = id
+	if err := req.Validate(); err != nil {
+		respondValidationError(w, err)
+		return
+	}
 
 	setting, err := s.providerSettingRepo.Update(r.Context(), req)
 	if err != nil {
@@ -263,6 +287,10 @@ func (s *Server) createTemplateGroup(w http.ResponseWriter, r *http.Request) {
 		respondError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
+	if err := req.Validate(); err != nil {
+		respondValidationError(w, err)
+		return
+	}
 
 	g, err := s.templateGroupRepo.Create(r.Context(), req)
 	if err != nil {
@@ -285,6 +313,10 @@ func (s *Server) updateTemplateGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	req.ID = id
+	if err := req.Validate(); err != nil {
+		respondValidationError(w, err)
+		return
+	}
 
 	g, err := s.templateGroupRepo.Update(r.Context(), req)
 	if err != nil {
@@ -325,6 +357,10 @@ func (s *Server) createTemplate(w http.ResponseWriter, r *http.Request) {
 		respondError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
+	if err := req.Validate(); err != nil {
+		respondValidationError(w, err)
+		return
+	}
 
 	t, err := s.templateRepo.Create(r.Context(), req)
 	if err != nil {
@@ -347,6 +383,10 @@ func (s *Server) updateTemplate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	req.ID = id
+	if err := req.Validate(); err != nil {
+		respondValidationError(w, err)
+		return
+	}
 
 	t, err := s.templateRepo.Update(r.Context(), req)
 	if err != nil {
@@ -377,7 +417,7 @@ func (s *Server) previewTemplate(w http.ResponseWriter, r *http.Request) {
 
 	// Simple template rendering (can be extended with more sophisticated templating)
 	respondJSON(w, http.StatusOK, template.PreviewResponse{
-		RenderedContent: t.Content,
+		RenderedContent: t.MessageTemplate,
 	})
 }
 
@@ -412,6 +452,10 @@ func (s *Server) createRoutingRule(w http.ResponseWriter, r *http.Request) {
 		respondError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
+	if err := req.Validate(); err != nil {
+		respondValidationError(w, err)
+		return
+	}
 
 	rule, err := s.routingRuleRepo.Create(r.Context(), req)
 	if err != nil {
@@ -434,6 +478,11 @@ func (s *Server) updateRoutingRule(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	req.ID = id
+
+	if err := req.Validate(); err != nil {
+		respondValidationError(w, err)
+		return
+	}
 
 	rule, err := s.routingRuleRepo.Update(r.Context(), req)
 	if err != nil {

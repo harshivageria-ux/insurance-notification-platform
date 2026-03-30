@@ -17,82 +17,76 @@ func NewPriorityRepository(db *pgxpool.Pool) *PriorityRepository {
 }
 
 func (r *PriorityRepository) GetAll(ctx context.Context) ([]priority.Priority, error) {
-	query := `
-		SELECT id, name, level, status, created_at, updated_at, deleted_at
-		FROM priorities
-		WHERE deleted_at IS NULL
-		ORDER BY level DESC
+	const query = `
+		SELECT priority_id, COALESCE(priority_code, ''), COALESCE(description, ''), created_at, COALESCE(created_by, ''), COALESCE(is_active, false), COALESCE(version, 0)
+		FROM notification_priority_master
+		ORDER BY priority_id ASC
 	`
+
 	rows, err := r.db.Query(ctx, query)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var priorities []priority.Priority
+	var items []priority.Priority
 	for rows.Next() {
-		var p priority.Priority
-		err := rows.Scan(&p.ID, &p.Name, &p.Level, &p.Status, &p.CreatedAt, &p.UpdatedAt, &p.DeletedAt)
-		if err != nil {
+		var item priority.Priority
+		if err := rows.Scan(
+			&item.PriorityID,
+			&item.PriorityCode,
+			&item.Description,
+			&item.CreatedAt,
+			&item.CreatedBy,
+			&item.IsActive,
+			&item.Version,
+		); err != nil {
 			return nil, err
 		}
-		priorities = append(priorities, p)
+		items = append(items, item)
 	}
 
-	return priorities, rows.Err()
+	return items, rows.Err()
 }
 
 func (r *PriorityRepository) GetByID(ctx context.Context, id int) (*priority.Priority, error) {
-	query := `
-		SELECT id, name, level, status, created_at, updated_at, deleted_at
-		FROM priorities
-		WHERE id = $1 AND deleted_at IS NULL
-	`
-	p := &priority.Priority{}
-	err := r.db.QueryRow(ctx, query, id).Scan(&p.ID, &p.Name, &p.Level, &p.Status, &p.CreatedAt, &p.UpdatedAt, &p.DeletedAt)
-	if err != nil {
+	item := &priority.Priority{}
+	if err := r.db.QueryRow(ctx, `SELECT priority_id, COALESCE(priority_code, ''), COALESCE(description, ''), created_at, COALESCE(created_by, ''), COALESCE(is_active, false), COALESCE(version, 0) FROM notification_priority_master WHERE priority_id = $1`, id).Scan(&item.PriorityID, &item.PriorityCode, &item.Description, &item.CreatedAt, &item.CreatedBy, &item.IsActive, &item.Version); err != nil {
 		return nil, err
 	}
-	return p, nil
+	return item, nil
 }
 
 func (r *PriorityRepository) Create(ctx context.Context, req priority.CreateRequest) (*priority.Priority, error) {
-	query := `
-		INSERT INTO priorities (name, level, status)
-		VALUES ($1, $2, $3)
-		RETURNING id, name, level, status, created_at, updated_at, deleted_at
-	`
-	p := &priority.Priority{}
-	err := r.db.QueryRow(ctx, query, req.Name, req.Level, req.Status).
-		Scan(&p.ID, &p.Name, &p.Level, &p.Status, &p.CreatedAt, &p.UpdatedAt, &p.DeletedAt)
-	if err != nil {
+	item := &priority.Priority{}
+	if err := r.db.QueryRow(ctx, `
+		-- Some environments have a broken/absent SMALLSERIAL default; explicitly set priority_id.
+		INSERT INTO notification_priority_master (priority_id, priority_code, description, created_at, created_by, is_active, version)
+		VALUES (
+			(SELECT COALESCE(MAX(priority_id), 0) + 1 FROM notification_priority_master),
+			$1, $2, NOW(), $3, true, 1
+		)
+		RETURNING priority_id, COALESCE(priority_code, ''), COALESCE(description, ''), created_at, COALESCE(created_by, ''), COALESCE(is_active, false), COALESCE(version, 0)
+	`, req.PriorityCode, req.Description, req.CreatedBy).Scan(&item.PriorityID, &item.PriorityCode, &item.Description, &item.CreatedAt, &item.CreatedBy, &item.IsActive, &item.Version); err != nil {
 		return nil, err
 	}
-	return p, nil
+	return item, nil
 }
 
 func (r *PriorityRepository) Update(ctx context.Context, req priority.UpdateRequest) (*priority.Priority, error) {
-	query := `
-		UPDATE priorities
-		SET name = $2, level = $3, status = $4, updated_at = NOW()
-		WHERE id = $1 AND deleted_at IS NULL
-		RETURNING id, name, level, status, created_at, updated_at, deleted_at
-	`
-	p := &priority.Priority{}
-	err := r.db.QueryRow(ctx, query, req.ID, req.Name, req.Level, req.Status).
-		Scan(&p.ID, &p.Name, &p.Level, &p.Status, &p.CreatedAt, &p.UpdatedAt, &p.DeletedAt)
-	if err != nil {
+	item := &priority.Priority{}
+	if err := r.db.QueryRow(ctx, `
+		UPDATE notification_priority_master
+		SET priority_code = $2, description = $3, created_by = COALESCE(NULLIF($4, ''), created_by)
+		WHERE priority_id = $1
+		RETURNING priority_id, COALESCE(priority_code, ''), COALESCE(description, ''), created_at, COALESCE(created_by, ''), COALESCE(is_active, false), COALESCE(version, 0)
+	`, req.PriorityID, req.PriorityCode, req.Description, req.CreatedBy).Scan(&item.PriorityID, &item.PriorityCode, &item.Description, &item.CreatedAt, &item.CreatedBy, &item.IsActive, &item.Version); err != nil {
 		return nil, err
 	}
-	return p, nil
+	return item, nil
 }
 
 func (r *PriorityRepository) Delete(ctx context.Context, id int) error {
-	query := `
-		UPDATE priorities
-		SET deleted_at = NOW()
-		WHERE id = $1 AND deleted_at IS NULL
-	`
-	_, err := r.db.Exec(ctx, query, id)
+	_, err := r.db.Exec(ctx, `UPDATE notification_priority_master SET is_active = false WHERE priority_id = $1`, id)
 	return err
 }

@@ -58,7 +58,7 @@ func main() {
 	// Start HTTP server
 	port := os.Getenv("HTTP_PORT")
 	if port == "" {
-		port = "8080"
+		port = "9000" // align with frontend default (environment.ts)
 	}
 
 	httpServer := &http.Server{

@@ -8,91 +8,51 @@ import (
 	st "probus-notification-system/internal/domain/schedule_type"
 )
 
-type ScheduleTypeRepository struct {
-	db *pgxpool.Pool
-}
+type ScheduleTypeRepository struct{ db *pgxpool.Pool }
 
 func NewScheduleTypeRepository(db *pgxpool.Pool) *ScheduleTypeRepository {
 	return &ScheduleTypeRepository{db: db}
 }
 
 func (r *ScheduleTypeRepository) GetAll(ctx context.Context) ([]st.ScheduleType, error) {
-	query := `
-		SELECT id, name, description, status, created_at, updated_at, deleted_at
-		FROM schedule_types
-		WHERE deleted_at IS NULL
-		ORDER BY created_at DESC
-	`
-	rows, err := r.db.Query(ctx, query)
+	rows, err := r.db.Query(ctx, `SELECT schedule_type_id, COALESCE(schedule_code, ''), COALESCE(description, ''), created_at, COALESCE(created_by, ''), COALESCE(is_active, false), COALESCE(version, 0) FROM notification_schedule_type_master ORDER BY schedule_type_id ASC`)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-
-	var types []st.ScheduleType
+	var items []st.ScheduleType
 	for rows.Next() {
-		var t st.ScheduleType
-		err := rows.Scan(&t.ID, &t.Name, &t.Description, &t.Status, &t.CreatedAt, &t.UpdatedAt, &t.DeletedAt)
-		if err != nil {
+		var item st.ScheduleType
+		if err := rows.Scan(&item.ScheduleTypeID, &item.ScheduleCode, &item.Description, &item.CreatedAt, &item.CreatedBy, &item.IsActive, &item.Version); err != nil {
 			return nil, err
 		}
-		types = append(types, t)
+		items = append(items, item)
 	}
-
-	return types, rows.Err()
+	return items, rows.Err()
 }
 
 func (r *ScheduleTypeRepository) GetByID(ctx context.Context, id int) (*st.ScheduleType, error) {
-	query := `
-		SELECT id, name, description, status, created_at, updated_at, deleted_at
-		FROM schedule_types
-		WHERE id = $1 AND deleted_at IS NULL
-	`
-	t := &st.ScheduleType{}
-	err := r.db.QueryRow(ctx, query, id).Scan(&t.ID, &t.Name, &t.Description, &t.Status, &t.CreatedAt, &t.UpdatedAt, &t.DeletedAt)
-	if err != nil {
+	item := &st.ScheduleType{}
+	if err := r.db.QueryRow(ctx, `SELECT schedule_type_id, COALESCE(schedule_code, ''), COALESCE(description, ''), created_at, COALESCE(created_by, ''), COALESCE(is_active, false), COALESCE(version, 0) FROM notification_schedule_type_master WHERE schedule_type_id = $1`, id).Scan(&item.ScheduleTypeID, &item.ScheduleCode, &item.Description, &item.CreatedAt, &item.CreatedBy, &item.IsActive, &item.Version); err != nil {
 		return nil, err
 	}
-	return t, nil
+	return item, nil
 }
-
 func (r *ScheduleTypeRepository) Create(ctx context.Context, req st.CreateRequest) (*st.ScheduleType, error) {
-	query := `
-		INSERT INTO schedule_types (name, description, status)
-		VALUES ($1, $2, $3)
-		RETURNING id, name, description, status, created_at, updated_at, deleted_at
-	`
-	t := &st.ScheduleType{}
-	err := r.db.QueryRow(ctx, query, req.Name, req.Description, req.Status).
-		Scan(&t.ID, &t.Name, &t.Description, &t.Status, &t.CreatedAt, &t.UpdatedAt, &t.DeletedAt)
-	if err != nil {
+	item := &st.ScheduleType{}
+	if err := r.db.QueryRow(ctx, `INSERT INTO notification_schedule_type_master (schedule_code, description, created_at, created_by, is_active, version) VALUES ($1, $2, NOW(), $3, true, 1) RETURNING schedule_type_id, COALESCE(schedule_code, ''), COALESCE(description, ''), created_at, COALESCE(created_by, ''), COALESCE(is_active, false), COALESCE(version, 0)`, req.ScheduleCode, req.Description, req.CreatedBy).Scan(&item.ScheduleTypeID, &item.ScheduleCode, &item.Description, &item.CreatedAt, &item.CreatedBy, &item.IsActive, &item.Version); err != nil {
 		return nil, err
 	}
-	return t, nil
+	return item, nil
 }
-
 func (r *ScheduleTypeRepository) Update(ctx context.Context, req st.UpdateRequest) (*st.ScheduleType, error) {
-	query := `
-		UPDATE schedule_types
-		SET name = $2, description = $3, status = $4, updated_at = NOW()
-		WHERE id = $1 AND deleted_at IS NULL
-		RETURNING id, name, description, status, created_at, updated_at, deleted_at
-	`
-	t := &st.ScheduleType{}
-	err := r.db.QueryRow(ctx, query, req.ID, req.Name, req.Description, req.Status).
-		Scan(&t.ID, &t.Name, &t.Description, &t.Status, &t.CreatedAt, &t.UpdatedAt, &t.DeletedAt)
-	if err != nil {
+	item := &st.ScheduleType{}
+	if err := r.db.QueryRow(ctx, `UPDATE notification_schedule_type_master SET schedule_code = $2, description = $3 WHERE schedule_type_id = $1 RETURNING schedule_type_id, COALESCE(schedule_code, ''), COALESCE(description, ''), created_at, COALESCE(created_by, ''), COALESCE(is_active, false), COALESCE(version, 0)`, req.ScheduleTypeID, req.ScheduleCode, req.Description).Scan(&item.ScheduleTypeID, &item.ScheduleCode, &item.Description, &item.CreatedAt, &item.CreatedBy, &item.IsActive, &item.Version); err != nil {
 		return nil, err
 	}
-	return t, nil
+	return item, nil
 }
-
 func (r *ScheduleTypeRepository) Delete(ctx context.Context, id int) error {
-	query := `
-		UPDATE schedule_types
-		SET deleted_at = NOW()
-		WHERE id = $1 AND deleted_at IS NULL
-	`
-	_, err := r.db.Exec(ctx, query, id)
+	_, err := r.db.Exec(ctx, `UPDATE notification_schedule_type_master SET is_active = false WHERE schedule_type_id = $1`, id)
 	return err
 }

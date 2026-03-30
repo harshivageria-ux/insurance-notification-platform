@@ -1,0 +1,47 @@
+# Go
+.gocache/
+*.exe
+*.dll
+*.so
+*.dylib
+dist/
+build/
+
+# Node.js / Angular
+node_modules/
+dist/
+.angular/
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*.vscode
+.DS_Store
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Temp
+tmp/
+temp/
+*.tmp
+
+# Dependencies
+vendor/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/

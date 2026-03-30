@@ -175,10 +175,18 @@ func getIDParam(r *http.Request) (int, error) {
 	return strconv.Atoi(idStr)
 }
 
+func getStringIDParam(r *http.Request) string {
+	return chi.URLParam(r, "id")
+}
+
 // Helper function to get providerID from URL parameters
 func getProviderIDParam(r *http.Request) (int, error) {
 	idStr := chi.URLParam(r, "provider_id")
 	return strconv.Atoi(idStr)
+}
+
+func getStringProviderIDParam(r *http.Request) string {
+	return chi.URLParam(r, "provider_id")
 }
 
 // CORS middleware

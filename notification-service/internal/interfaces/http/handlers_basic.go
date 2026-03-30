@@ -2,6 +2,8 @@ package http
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 
 	"probus-notification-system/internal/domain/category"
@@ -28,10 +30,15 @@ func (s *Server) createLanguage(w http.ResponseWriter, r *http.Request) {
 		respondError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
+	req = req.Normalize()
+	if err := req.Validate(); err != nil {
+		respondLanguageValidationError(w, err)
+		return
+	}
 
 	lang, err := s.languageRepo.Create(r.Context(), req)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, "Failed to create language")
+		respondLanguageRepositoryError(w, err, "Failed to create language")
 		return
 	}
 	respondJSON(w, http.StatusCreated, lang)
@@ -39,7 +46,7 @@ func (s *Server) createLanguage(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) updateLanguage(w http.ResponseWriter, r *http.Request) {
 	id, err := getIDParam(r)
-	if err != nil {
+	if err != nil || id <= 0 {
 		respondError(w, http.StatusBadRequest, "Invalid ID")
 		return
 	}
@@ -49,11 +56,16 @@ func (s *Server) updateLanguage(w http.ResponseWriter, r *http.Request) {
 		respondError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
-	req.ID = id
+	req = req.Normalize()
+	req.ID = int64(id)
+	if err := req.Validate(); err != nil {
+		respondLanguageValidationError(w, err)
+		return
+	}
 
 	lang, err := s.languageRepo.Update(r.Context(), req)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, "Failed to update language")
+		respondLanguageRepositoryError(w, err, "Failed to update language")
 		return
 	}
 	respondJSON(w, http.StatusOK, lang)
@@ -61,12 +73,12 @@ func (s *Server) updateLanguage(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) deactivateLanguage(w http.ResponseWriter, r *http.Request) {
 	id, err := getIDParam(r)
-	if err != nil {
+	if err != nil || id <= 0 {
 		respondError(w, http.StatusBadRequest, "Invalid ID")
 		return
 	}
 
-	if err := s.languageRepo.Delete(r.Context(), id); err != nil {
+	if err := s.languageRepo.Delete(r.Context(), int64(id)); err != nil {
 		respondError(w, http.StatusInternalServerError, "Failed to delete language")
 		return
 	}
@@ -90,6 +102,12 @@ func (s *Server) createPriority(w http.ResponseWriter, r *http.Request) {
 		respondError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
+	// Normalize (trim/uppercase) to keep code comparisons consistent.
+	req = req.Normalize()
+	if err := req.Validate(); err != nil {
+		respondValidationError(w, err)
+		return
+	}
 
 	p, err := s.priorityRepo.Create(r.Context(), req)
 	if err != nil {
@@ -111,7 +129,12 @@ func (s *Server) updatePriority(w http.ResponseWriter, r *http.Request) {
 		respondError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
-	req.ID = id
+	req.PriorityID = int16(id)
+	req = req.Normalize()
+	if err := req.Validate(); err != nil {
+		respondValidationError(w, err)
+		return
+	}
 
 	p, err := s.priorityRepo.Update(r.Context(), req)
 	if err != nil {
@@ -152,6 +175,11 @@ func (s *Server) createStatus(w http.ResponseWriter, r *http.Request) {
 		respondError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
+	req = req.Normalize()
+	if err := req.Validate(); err != nil {
+		respondValidationError(w, err)
+		return
+	}
 
 	st, err := s.statusRepo.Create(r.Context(), req)
 	if err != nil {
@@ -173,7 +201,12 @@ func (s *Server) updateStatus(w http.ResponseWriter, r *http.Request) {
 		respondError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
-	req.ID = id
+	req = req.Normalize()
+	req.StatusID = int16(id)
+	if err := req.Validate(); err != nil {
+		respondValidationError(w, err)
+		return
+	}
 
 	st, err := s.statusRepo.Update(r.Context(), req)
 	if err != nil {
@@ -214,6 +247,10 @@ func (s *Server) createScheduleType(w http.ResponseWriter, r *http.Request) {
 		respondError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
+	if err := req.Validate(); err != nil {
+		respondValidationError(w, err)
+		return
+	}
 
 	t, err := s.scheduleTypeRepo.Create(r.Context(), req)
 	if err != nil {
@@ -235,7 +272,11 @@ func (s *Server) updateScheduleType(w http.ResponseWriter, r *http.Request) {
 		respondError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
-	req.ID = id
+	req.ScheduleTypeID = int16(id)
+	if err := req.Validate(); err != nil {
+		respondValidationError(w, err)
+		return
+	}
 
 	t, err := s.scheduleTypeRepo.Update(r.Context(), req)
 	if err != nil {
@@ -276,6 +317,11 @@ func (s *Server) createCategory(w http.ResponseWriter, r *http.Request) {
 		respondError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
+	req = req.Normalize()
+	if err := req.Validate(); err != nil {
+		respondValidationError(w, err)
+		return
+	}
 
 	c, err := s.categoryRepo.Create(r.Context(), req)
 	if err != nil {
@@ -287,7 +333,7 @@ func (s *Server) createCategory(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) updateCategory(w http.ResponseWriter, r *http.Request) {
 	id, err := getIDParam(r)
-	if err != nil {
+	if err != nil || id <= 0 {
 		respondError(w, http.StatusBadRequest, "Invalid ID")
 		return
 	}
@@ -297,7 +343,12 @@ func (s *Server) updateCategory(w http.ResponseWriter, r *http.Request) {
 		respondError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
+	req = req.Normalize()
 	req.ID = id
+	if err := req.Validate(); err != nil {
+		respondValidationError(w, err)
+		return
+	}
 
 	c, err := s.categoryRepo.Update(r.Context(), req)
 	if err != nil {
@@ -309,7 +360,7 @@ func (s *Server) updateCategory(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) deactivateCategory(w http.ResponseWriter, r *http.Request) {
 	id, err := getIDParam(r)
-	if err != nil {
+	if err != nil || id <= 0 {
 		respondError(w, http.StatusBadRequest, "Invalid ID")
 		return
 	}
@@ -319,4 +370,23 @@ func (s *Server) deactivateCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respondJSON(w, http.StatusOK, map[string]string{"message": "Category deleted successfully"})
+}
+
+func respondLanguageValidationError(w http.ResponseWriter, err error) {
+	respondError(w, http.StatusBadRequest, err.Error())
+}
+
+func respondValidationError(w http.ResponseWriter, err error) {
+	respondError(w, http.StatusBadRequest, err.Error())
+}
+
+func respondLanguageRepositoryError(w http.ResponseWriter, err error, fallback string) {
+	switch {
+	case errors.Is(err, language.ErrDuplicateName), errors.Is(err, language.ErrDuplicateCode):
+		respondError(w, http.StatusConflict, err.Error())
+	case errors.Is(err, language.ErrLanguageNotFound):
+		respondError(w, http.StatusNotFound, err.Error())
+	default:
+		respondError(w, http.StatusInternalServerError, fmt.Sprintf("%s: %v", fallback, err))
+	}
 }

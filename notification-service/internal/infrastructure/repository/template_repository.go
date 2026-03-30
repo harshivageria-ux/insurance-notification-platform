@@ -8,91 +8,49 @@ import (
 	"probus-notification-system/internal/domain/template"
 )
 
-type TemplateRepository struct {
-	db *pgxpool.Pool
-}
+type TemplateRepository struct{ db *pgxpool.Pool }
 
-func NewTemplateRepository(db *pgxpool.Pool) *TemplateRepository {
-	return &TemplateRepository{db: db}
-}
+func NewTemplateRepository(db *pgxpool.Pool) *TemplateRepository { return &TemplateRepository{db: db} }
 
 func (r *TemplateRepository) GetAll(ctx context.Context) ([]template.Template, error) {
-	query := `
-		SELECT id, template_group_id, name, content, variables, status, created_at, updated_at, deleted_at
-		FROM templates
-		WHERE deleted_at IS NULL
-		ORDER BY created_at DESC
-	`
-	rows, err := r.db.Query(ctx, query)
+	rows, err := r.db.Query(ctx, `SELECT id, template_group_id, channel_id, language_id, COALESCE(title_template, ''), COALESCE(message_template, ''), COALESCE(has_variables, false), created_at, COALESCE(created_by, ''), COALESCE(is_active, false), COALESCE(version, 0) FROM notification_templates_master ORDER BY created_at DESC`)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-
-	var templates []template.Template
+	var items []template.Template
 	for rows.Next() {
-		var t template.Template
-		err := rows.Scan(&t.ID, &t.TemplateGroupID, &t.Name, &t.Content, &t.Variables, &t.Status, &t.CreatedAt, &t.UpdatedAt, &t.DeletedAt)
-		if err != nil {
+		var item template.Template
+		if err := rows.Scan(&item.ID, &item.TemplateGroupID, &item.ChannelID, &item.LanguageID, &item.TitleTemplate, &item.MessageTemplate, &item.HasVariables, &item.CreatedAt, &item.CreatedBy, &item.IsActive, &item.Version); err != nil {
 			return nil, err
 		}
-		templates = append(templates, t)
+		items = append(items, item)
 	}
-
-	return templates, rows.Err()
+	return items, rows.Err()
 }
 
 func (r *TemplateRepository) GetByID(ctx context.Context, id int) (*template.Template, error) {
-	query := `
-		SELECT id, template_group_id, name, content, variables, status, created_at, updated_at, deleted_at
-		FROM templates
-		WHERE id = $1 AND deleted_at IS NULL
-	`
-	t := &template.Template{}
-	err := r.db.QueryRow(ctx, query, id).Scan(&t.ID, &t.TemplateGroupID, &t.Name, &t.Content, &t.Variables, &t.Status, &t.CreatedAt, &t.UpdatedAt, &t.DeletedAt)
-	if err != nil {
+	item := &template.Template{}
+	if err := r.db.QueryRow(ctx, `SELECT id, template_group_id, channel_id, language_id, COALESCE(title_template, ''), COALESCE(message_template, ''), COALESCE(has_variables, false), created_at, COALESCE(created_by, ''), COALESCE(is_active, false), COALESCE(version, 0) FROM notification_templates_master WHERE id = $1`, id).Scan(&item.ID, &item.TemplateGroupID, &item.ChannelID, &item.LanguageID, &item.TitleTemplate, &item.MessageTemplate, &item.HasVariables, &item.CreatedAt, &item.CreatedBy, &item.IsActive, &item.Version); err != nil {
 		return nil, err
 	}
-	return t, nil
+	return item, nil
 }
-
 func (r *TemplateRepository) Create(ctx context.Context, req template.CreateRequest) (*template.Template, error) {
-	query := `
-		INSERT INTO templates (template_group_id, name, content, variables, status)
-		VALUES ($1, $2, $3, $4, $5)
-		RETURNING id, template_group_id, name, content, variables, status, created_at, updated_at, deleted_at
-	`
-	t := &template.Template{}
-	err := r.db.QueryRow(ctx, query, req.TemplateGroupID, req.Name, req.Content, req.Variables, req.Status).
-		Scan(&t.ID, &t.TemplateGroupID, &t.Name, &t.Content, &t.Variables, &t.Status, &t.CreatedAt, &t.UpdatedAt, &t.DeletedAt)
-	if err != nil {
+	item := &template.Template{}
+	if err := r.db.QueryRow(ctx, `INSERT INTO notification_templates_master (template_group_id, channel_id, language_id, title_template, message_template, has_variables, created_at, created_by, is_active, version) VALUES ($1, $2, $3, $4, $5, $6, NOW(), $7, true, 1) RETURNING id, template_group_id, channel_id, language_id, COALESCE(title_template, ''), COALESCE(message_template, ''), COALESCE(has_variables, false), created_at, COALESCE(created_by, ''), COALESCE(is_active, false), COALESCE(version, 0)`, req.TemplateGroupID, req.ChannelID, req.LanguageID, req.TitleTemplate, req.MessageTemplate, req.HasVariables, req.CreatedBy).Scan(&item.ID, &item.TemplateGroupID, &item.ChannelID, &item.LanguageID, &item.TitleTemplate, &item.MessageTemplate, &item.HasVariables, &item.CreatedAt, &item.CreatedBy, &item.IsActive, &item.Version); err != nil {
 		return nil, err
 	}
-	return t, nil
+	return item, nil
 }
-
 func (r *TemplateRepository) Update(ctx context.Context, req template.UpdateRequest) (*template.Template, error) {
-	query := `
-		UPDATE templates
-		SET template_group_id = $2, name = $3, content = $4, variables = $5, status = $6, updated_at = NOW()
-		WHERE id = $1 AND deleted_at IS NULL
-		RETURNING id, template_group_id, name, content, variables, status, created_at, updated_at, deleted_at
-	`
-	t := &template.Template{}
-	err := r.db.QueryRow(ctx, query, req.ID, req.TemplateGroupID, req.Name, req.Content, req.Variables, req.Status).
-		Scan(&t.ID, &t.TemplateGroupID, &t.Name, &t.Content, &t.Variables, &t.Status, &t.CreatedAt, &t.UpdatedAt, &t.DeletedAt)
-	if err != nil {
+	item := &template.Template{}
+	if err := r.db.QueryRow(ctx, `UPDATE notification_templates_master SET template_group_id = $2, channel_id = $3, language_id = $4, title_template = $5, message_template = $6, has_variables = $7 WHERE id = $1 RETURNING id, template_group_id, channel_id, language_id, COALESCE(title_template, ''), COALESCE(message_template, ''), COALESCE(has_variables, false), created_at, COALESCE(created_by, ''), COALESCE(is_active, false), COALESCE(version, 0)`, req.ID, req.TemplateGroupID, req.ChannelID, req.LanguageID, req.TitleTemplate, req.MessageTemplate, req.HasVariables).Scan(&item.ID, &item.TemplateGroupID, &item.ChannelID, &item.LanguageID, &item.TitleTemplate, &item.MessageTemplate, &item.HasVariables, &item.CreatedAt, &item.CreatedBy, &item.IsActive, &item.Version); err != nil {
 		return nil, err
 	}
-	return t, nil
+	return item, nil
 }
-
 func (r *TemplateRepository) Delete(ctx context.Context, id int) error {
-	query := `
-		UPDATE templates
-		SET deleted_at = NOW()
-		WHERE id = $1 AND deleted_at IS NULL
-	`
-	_, err := r.db.Exec(ctx, query, id)
+	_, err := r.db.Exec(ctx, `UPDATE notification_templates_master SET is_active = false WHERE id = $1`, id)
 	return err
 }

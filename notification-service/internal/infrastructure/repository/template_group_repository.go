@@ -8,91 +8,51 @@ import (
 	tg "probus-notification-system/internal/domain/template_group"
 )
 
-type TemplateGroupRepository struct {
-	db *pgxpool.Pool
-}
+type TemplateGroupRepository struct{ db *pgxpool.Pool }
 
 func NewTemplateGroupRepository(db *pgxpool.Pool) *TemplateGroupRepository {
 	return &TemplateGroupRepository{db: db}
 }
 
 func (r *TemplateGroupRepository) GetAll(ctx context.Context) ([]tg.TemplateGroup, error) {
-	query := `
-		SELECT id, name, description, status, created_at, updated_at, deleted_at
-		FROM template_groups
-		WHERE deleted_at IS NULL
-		ORDER BY created_at DESC
-	`
-	rows, err := r.db.Query(ctx, query)
+	rows, err := r.db.Query(ctx, `SELECT id, COALESCE(name, ''), category_id, COALESCE(description, ''), COALESCE(created_by, ''), COALESCE(is_active, false), COALESCE(version, 0), created_at FROM template_groups_master ORDER BY created_at DESC`)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-
-	var groups []tg.TemplateGroup
+	var items []tg.TemplateGroup
 	for rows.Next() {
-		var g tg.TemplateGroup
-		err := rows.Scan(&g.ID, &g.Name, &g.Description, &g.Status, &g.CreatedAt, &g.UpdatedAt, &g.DeletedAt)
-		if err != nil {
+		var item tg.TemplateGroup
+		if err := rows.Scan(&item.ID, &item.Name, &item.CategoryID, &item.Description, &item.CreatedBy, &item.IsActive, &item.Version, &item.CreatedAt); err != nil {
 			return nil, err
 		}
-		groups = append(groups, g)
+		items = append(items, item)
 	}
-
-	return groups, rows.Err()
+	return items, rows.Err()
 }
 
 func (r *TemplateGroupRepository) GetByID(ctx context.Context, id int) (*tg.TemplateGroup, error) {
-	query := `
-		SELECT id, name, description, status, created_at, updated_at, deleted_at
-		FROM template_groups
-		WHERE id = $1 AND deleted_at IS NULL
-	`
-	g := &tg.TemplateGroup{}
-	err := r.db.QueryRow(ctx, query, id).Scan(&g.ID, &g.Name, &g.Description, &g.Status, &g.CreatedAt, &g.UpdatedAt, &g.DeletedAt)
-	if err != nil {
+	item := &tg.TemplateGroup{}
+	if err := r.db.QueryRow(ctx, `SELECT id, COALESCE(name, ''), category_id, COALESCE(description, ''), COALESCE(created_by, ''), COALESCE(is_active, false), COALESCE(version, 0), created_at FROM template_groups_master WHERE id = $1`, id).Scan(&item.ID, &item.Name, &item.CategoryID, &item.Description, &item.CreatedBy, &item.IsActive, &item.Version, &item.CreatedAt); err != nil {
 		return nil, err
 	}
-	return g, nil
+	return item, nil
 }
-
 func (r *TemplateGroupRepository) Create(ctx context.Context, req tg.CreateRequest) (*tg.TemplateGroup, error) {
-	query := `
-		INSERT INTO template_groups (name, description, status)
-		VALUES ($1, $2, $3)
-		RETURNING id, name, description, status, created_at, updated_at, deleted_at
-	`
-	g := &tg.TemplateGroup{}
-	err := r.db.QueryRow(ctx, query, req.Name, req.Description, req.Status).
-		Scan(&g.ID, &g.Name, &g.Description, &g.Status, &g.CreatedAt, &g.UpdatedAt, &g.DeletedAt)
-	if err != nil {
+	item := &tg.TemplateGroup{}
+	if err := r.db.QueryRow(ctx, `INSERT INTO template_groups_master (name, category_id, description, created_at, created_by, is_active, version) VALUES ($1, $2, $3, NOW(), $4, true, 1) RETURNING id, COALESCE(name, ''), category_id, COALESCE(description, ''), COALESCE(created_by, ''), COALESCE(is_active, false), COALESCE(version, 0), created_at`, req.Name, req.CategoryID, req.Description, req.CreatedBy).Scan(&item.ID, &item.Name, &item.CategoryID, &item.Description, &item.CreatedBy, &item.IsActive, &item.Version, &item.CreatedAt); err != nil {
 		return nil, err
 	}
-	return g, nil
+	return item, nil
 }
-
 func (r *TemplateGroupRepository) Update(ctx context.Context, req tg.UpdateRequest) (*tg.TemplateGroup, error) {
-	query := `
-		UPDATE template_groups
-		SET name = $2, description = $3, status = $4, updated_at = NOW()
-		WHERE id = $1 AND deleted_at IS NULL
-		RETURNING id, name, description, status, created_at, updated_at, deleted_at
-	`
-	g := &tg.TemplateGroup{}
-	err := r.db.QueryRow(ctx, query, req.ID, req.Name, req.Description, req.Status).
-		Scan(&g.ID, &g.Name, &g.Description, &g.Status, &g.CreatedAt, &g.UpdatedAt, &g.DeletedAt)
-	if err != nil {
+	item := &tg.TemplateGroup{}
+	if err := r.db.QueryRow(ctx, `UPDATE template_groups_master SET name = $2, category_id = $3, description = $4 WHERE id = $1 RETURNING id, COALESCE(name, ''), category_id, COALESCE(description, ''), COALESCE(created_by, ''), COALESCE(is_active, false), COALESCE(version, 0), created_at`, req.ID, req.Name, req.CategoryID, req.Description).Scan(&item.ID, &item.Name, &item.CategoryID, &item.Description, &item.CreatedBy, &item.IsActive, &item.Version, &item.CreatedAt); err != nil {
 		return nil, err
 	}
-	return g, nil
+	return item, nil
 }
-
 func (r *TemplateGroupRepository) Delete(ctx context.Context, id int) error {
-	query := `
-		UPDATE template_groups
-		SET deleted_at = NOW()
-		WHERE id = $1 AND deleted_at IS NULL
-	`
-	_, err := r.db.Exec(ctx, query, id)
+	_, err := r.db.Exec(ctx, `UPDATE template_groups_master SET is_active = false WHERE id = $1`, id)
 	return err
 }

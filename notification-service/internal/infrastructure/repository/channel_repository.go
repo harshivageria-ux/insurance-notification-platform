@@ -8,107 +8,56 @@ import (
 	"probus-notification-system/internal/domain/channel"
 )
 
-type ChannelRepository struct {
-	db *pgxpool.Pool
-}
+type ChannelRepository struct{ db *pgxpool.Pool }
 
-func NewChannelRepository(db *pgxpool.Pool) *ChannelRepository {
-	return &ChannelRepository{db: db}
-}
+func NewChannelRepository(db *pgxpool.Pool) *ChannelRepository { return &ChannelRepository{db: db} }
 
 func (r *ChannelRepository) GetAll(ctx context.Context) ([]channel.Channel, error) {
-	query := `
-		SELECT id, name, channel_type, is_active, status, created_at, updated_at, deleted_at
-		FROM channels
-		WHERE deleted_at IS NULL
-		ORDER BY created_at DESC
-	`
-	rows, err := r.db.Query(ctx, query)
+	rows, err := r.db.Query(ctx, `SELECT id, COALESCE(code, ''), COALESCE(name, ''), COALESCE(description, ''), COALESCE(is_active, false), COALESCE(created_by, ''), COALESCE(version, 0), created_at FROM notification_channels_master ORDER BY created_at DESC`)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-
-	var channels []channel.Channel
+	var items []channel.Channel
 	for rows.Next() {
-		var c channel.Channel
-		err := rows.Scan(&c.ID, &c.Name, &c.Type, &c.IsActive, &c.Status, &c.CreatedAt, &c.UpdatedAt, &c.DeletedAt)
-		if err != nil {
+		var item channel.Channel
+		if err := rows.Scan(&item.ID, &item.Code, &item.Name, &item.Description, &item.IsActive, &item.CreatedBy, &item.Version, &item.CreatedAt); err != nil {
 			return nil, err
 		}
-		channels = append(channels, c)
+		items = append(items, item)
 	}
-
-	return channels, rows.Err()
+	return items, rows.Err()
 }
 
 func (r *ChannelRepository) GetByID(ctx context.Context, id int) (*channel.Channel, error) {
-	query := `
-		SELECT id, name, channel_type, is_active, status, created_at, updated_at, deleted_at
-		FROM channels
-		WHERE id = $1 AND deleted_at IS NULL
-	`
-	c := &channel.Channel{}
-	err := r.db.QueryRow(ctx, query, id).Scan(&c.ID, &c.Name, &c.Type, &c.IsActive, &c.Status, &c.CreatedAt, &c.UpdatedAt, &c.DeletedAt)
-	if err != nil {
+	item := &channel.Channel{}
+	if err := r.db.QueryRow(ctx, `SELECT id, COALESCE(code, ''), COALESCE(name, ''), COALESCE(description, ''), COALESCE(is_active, false), COALESCE(created_by, ''), COALESCE(version, 0), created_at FROM notification_channels_master WHERE id = $1`, id).Scan(&item.ID, &item.Code, &item.Name, &item.Description, &item.IsActive, &item.CreatedBy, &item.Version, &item.CreatedAt); err != nil {
 		return nil, err
 	}
-	return c, nil
+	return item, nil
 }
-
 func (r *ChannelRepository) Create(ctx context.Context, req channel.CreateRequest) (*channel.Channel, error) {
-	query := `
-		INSERT INTO channels (name, channel_type, status)
-		VALUES ($1, $2, $3)
-		RETURNING id, name, channel_type, is_active, status, created_at, updated_at, deleted_at
-	`
-	c := &channel.Channel{}
-	err := r.db.QueryRow(ctx, query, req.Name, req.Type, req.Status).
-		Scan(&c.ID, &c.Name, &c.Type, &c.IsActive, &c.Status, &c.CreatedAt, &c.UpdatedAt, &c.DeletedAt)
-	if err != nil {
+	item := &channel.Channel{}
+	if err := r.db.QueryRow(ctx, `INSERT INTO notification_channels_master (code, name, description, created_at, created_by, is_active, version) VALUES ($1, $2, $3, NOW(), $4, true, 1) RETURNING id, COALESCE(code, ''), COALESCE(name, ''), COALESCE(description, ''), COALESCE(is_active, false), COALESCE(created_by, ''), COALESCE(version, 0), created_at`, req.Code, req.Name, req.Description, req.CreatedBy).Scan(&item.ID, &item.Code, &item.Name, &item.Description, &item.IsActive, &item.CreatedBy, &item.Version, &item.CreatedAt); err != nil {
 		return nil, err
 	}
-	return c, nil
+	return item, nil
 }
-
 func (r *ChannelRepository) Update(ctx context.Context, req channel.UpdateRequest) (*channel.Channel, error) {
-	query := `
-		UPDATE channels
-		SET name = $2, channel_type = $3, status = $4, updated_at = NOW()
-		WHERE id = $1 AND deleted_at IS NULL
-		RETURNING id, name, channel_type, is_active, status, created_at, updated_at, deleted_at
-	`
-	c := &channel.Channel{}
-	err := r.db.QueryRow(ctx, query, req.ID, req.Name, req.Type, req.Status).
-		Scan(&c.ID, &c.Name, &c.Type, &c.IsActive, &c.Status, &c.CreatedAt, &c.UpdatedAt, &c.DeletedAt)
-	if err != nil {
+	item := &channel.Channel{}
+	if err := r.db.QueryRow(ctx, `UPDATE notification_channels_master SET code = $2, name = $3, description = $4 WHERE id = $1 RETURNING id, COALESCE(code, ''), COALESCE(name, ''), COALESCE(description, ''), COALESCE(is_active, false), COALESCE(created_by, ''), COALESCE(version, 0), created_at`, req.ID, req.Code, req.Name, req.Description).Scan(&item.ID, &item.Code, &item.Name, &item.Description, &item.IsActive, &item.CreatedBy, &item.Version, &item.CreatedAt); err != nil {
 		return nil, err
 	}
-	return c, nil
+	return item, nil
 }
-
 func (r *ChannelRepository) Toggle(ctx context.Context, id int, isActive bool) (*channel.Channel, error) {
-	query := `
-		UPDATE channels
-		SET is_active = $2, updated_at = NOW()
-		WHERE id = $1 AND deleted_at IS NULL
-		RETURNING id, name, channel_type, is_active, status, created_at, updated_at, deleted_at
-	`
-	c := &channel.Channel{}
-	err := r.db.QueryRow(ctx, query, id, isActive).
-		Scan(&c.ID, &c.Name, &c.Type, &c.IsActive, &c.Status, &c.CreatedAt, &c.UpdatedAt, &c.DeletedAt)
-	if err != nil {
+	item := &channel.Channel{}
+	if err := r.db.QueryRow(ctx, `UPDATE notification_channels_master SET is_active = $2 WHERE id = $1 RETURNING id, COALESCE(code, ''), COALESCE(name, ''), COALESCE(description, ''), COALESCE(is_active, false), COALESCE(created_by, ''), COALESCE(version, 0), created_at`, id, isActive).Scan(&item.ID, &item.Code, &item.Name, &item.Description, &item.IsActive, &item.CreatedBy, &item.Version, &item.CreatedAt); err != nil {
 		return nil, err
 	}
-	return c, nil
+	return item, nil
 }
-
 func (r *ChannelRepository) Delete(ctx context.Context, id int) error {
-	query := `
-		UPDATE channels
-		SET deleted_at = NOW()
-		WHERE id = $1 AND deleted_at IS NULL
-	`
-	_, err := r.db.Exec(ctx, query, id)
+	_, err := r.db.Exec(ctx, `UPDATE notification_channels_master SET is_active = false WHERE id = $1`, id)
 	return err
 }

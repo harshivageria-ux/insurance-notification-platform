@@ -8,107 +8,58 @@ import (
 	rr "probus-notification-system/internal/domain/routing_rule"
 )
 
-type RoutingRuleRepository struct {
-	db *pgxpool.Pool
-}
+type RoutingRuleRepository struct{ db *pgxpool.Pool }
 
 func NewRoutingRuleRepository(db *pgxpool.Pool) *RoutingRuleRepository {
 	return &RoutingRuleRepository{db: db}
 }
 
 func (r *RoutingRuleRepository) GetAll(ctx context.Context) ([]rr.RoutingRule, error) {
-	query := `
-		SELECT id, name, condition, target_channel, priority, is_active, status, created_at, updated_at, deleted_at
-		FROM routing_rules
-		WHERE deleted_at IS NULL
-		ORDER BY priority DESC, created_at DESC
-	`
-	rows, err := r.db.Query(ctx, query)
+	rows, err := r.db.Query(ctx, `SELECT id, template_group_id, channel_id, preferred_provider_id, COALESCE(fallback_provider_id, 0), created_at, COALESCE(created_by, ''), COALESCE(is_active, false), COALESCE(version, 0) FROM provider_routing_rules_master ORDER BY created_at DESC`)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-
-	var rules []rr.RoutingRule
+	var items []rr.RoutingRule
 	for rows.Next() {
-		var rule rr.RoutingRule
-		err := rows.Scan(&rule.ID, &rule.Name, &rule.Condition, &rule.TargetChannel, &rule.Priority, &rule.IsActive, &rule.Status, &rule.CreatedAt, &rule.UpdatedAt, &rule.DeletedAt)
-		if err != nil {
+		var item rr.RoutingRule
+		if err := rows.Scan(&item.ID, &item.TemplateGroupID, &item.ChannelID, &item.PreferredProviderID, &item.FallbackProviderID, &item.CreatedAt, &item.CreatedBy, &item.IsActive, &item.Version); err != nil {
 			return nil, err
 		}
-		rules = append(rules, rule)
+		items = append(items, item)
 	}
-
-	return rules, rows.Err()
+	return items, rows.Err()
 }
 
 func (r *RoutingRuleRepository) GetByID(ctx context.Context, id int) (*rr.RoutingRule, error) {
-	query := `
-		SELECT id, name, condition, target_channel, priority, is_active, status, created_at, updated_at, deleted_at
-		FROM routing_rules
-		WHERE id = $1 AND deleted_at IS NULL
-	`
-	rule := &rr.RoutingRule{}
-	err := r.db.QueryRow(ctx, query, id).Scan(&rule.ID, &rule.Name, &rule.Condition, &rule.TargetChannel, &rule.Priority, &rule.IsActive, &rule.Status, &rule.CreatedAt, &rule.UpdatedAt, &rule.DeletedAt)
-	if err != nil {
+	item := &rr.RoutingRule{}
+	if err := r.db.QueryRow(ctx, `SELECT id, template_group_id, channel_id, preferred_provider_id, COALESCE(fallback_provider_id, 0), created_at, COALESCE(created_by, ''), COALESCE(is_active, false), COALESCE(version, 0) FROM provider_routing_rules_master WHERE id = $1`, id).Scan(&item.ID, &item.TemplateGroupID, &item.ChannelID, &item.PreferredProviderID, &item.FallbackProviderID, &item.CreatedAt, &item.CreatedBy, &item.IsActive, &item.Version); err != nil {
 		return nil, err
 	}
-	return rule, nil
+	return item, nil
 }
-
 func (r *RoutingRuleRepository) Create(ctx context.Context, req rr.CreateRequest) (*rr.RoutingRule, error) {
-	query := `
-		INSERT INTO routing_rules (name, condition, target_channel, priority, status)
-		VALUES ($1, $2, $3, $4, $5)
-		RETURNING id, name, condition, target_channel, priority, is_active, status, created_at, updated_at, deleted_at
-	`
-	rule := &rr.RoutingRule{}
-	err := r.db.QueryRow(ctx, query, req.Name, req.Condition, req.TargetChannel, req.Priority, req.Status).
-		Scan(&rule.ID, &rule.Name, &rule.Condition, &rule.TargetChannel, &rule.Priority, &rule.IsActive, &rule.Status, &rule.CreatedAt, &rule.UpdatedAt, &rule.DeletedAt)
-	if err != nil {
+	item := &rr.RoutingRule{}
+	if err := r.db.QueryRow(ctx, `INSERT INTO provider_routing_rules_master (template_group_id, channel_id, preferred_provider_id, fallback_provider_id, created_at, created_by, is_active, version) VALUES ($1, $2, $3, NULLIF($4, 0), NOW(), $5, true, 1) RETURNING id, template_group_id, channel_id, preferred_provider_id, COALESCE(fallback_provider_id, 0), created_at, COALESCE(created_by, ''), COALESCE(is_active, false), COALESCE(version, 0)`, req.TemplateGroupID, req.ChannelID, req.PreferredProviderID, req.FallbackProviderID, req.CreatedBy).Scan(&item.ID, &item.TemplateGroupID, &item.ChannelID, &item.PreferredProviderID, &item.FallbackProviderID, &item.CreatedAt, &item.CreatedBy, &item.IsActive, &item.Version); err != nil {
 		return nil, err
 	}
-	return rule, nil
+	return item, nil
 }
-
 func (r *RoutingRuleRepository) Update(ctx context.Context, req rr.UpdateRequest) (*rr.RoutingRule, error) {
-	query := `
-		UPDATE routing_rules
-		SET name = $2, condition = $3, target_channel = $4, priority = $5, status = $6, updated_at = NOW()
-		WHERE id = $1 AND deleted_at IS NULL
-		RETURNING id, name, condition, target_channel, priority, is_active, status, created_at, updated_at, deleted_at
-	`
-	rule := &rr.RoutingRule{}
-	err := r.db.QueryRow(ctx, query, req.ID, req.Name, req.Condition, req.TargetChannel, req.Priority, req.Status).
-		Scan(&rule.ID, &rule.Name, &rule.Condition, &rule.TargetChannel, &rule.Priority, &rule.IsActive, &rule.Status, &rule.CreatedAt, &rule.UpdatedAt, &rule.DeletedAt)
-	if err != nil {
+	item := &rr.RoutingRule{}
+	if err := r.db.QueryRow(ctx, `UPDATE provider_routing_rules_master SET preferred_provider_id = $2, fallback_provider_id = NULLIF($3, 0) WHERE id = $1 RETURNING id, template_group_id, channel_id, preferred_provider_id, COALESCE(fallback_provider_id, 0), created_at, COALESCE(created_by, ''), COALESCE(is_active, false), COALESCE(version, 0)`, req.ID, req.PreferredProviderID, req.FallbackProviderID).Scan(&item.ID, &item.TemplateGroupID, &item.ChannelID, &item.PreferredProviderID, &item.FallbackProviderID, &item.CreatedAt, &item.CreatedBy, &item.IsActive, &item.Version); err != nil {
 		return nil, err
 	}
-	return rule, nil
+	return item, nil
 }
-
 func (r *RoutingRuleRepository) Toggle(ctx context.Context, id int, isActive bool) (*rr.RoutingRule, error) {
-	query := `
-		UPDATE routing_rules
-		SET is_active = $2, updated_at = NOW()
-		WHERE id = $1 AND deleted_at IS NULL
-		RETURNING id, name, condition, target_channel, priority, is_active, status, created_at, updated_at, deleted_at
-	`
-	rule := &rr.RoutingRule{}
-	err := r.db.QueryRow(ctx, query, id, isActive).
-		Scan(&rule.ID, &rule.Name, &rule.Condition, &rule.TargetChannel, &rule.Priority, &rule.IsActive, &rule.Status, &rule.CreatedAt, &rule.UpdatedAt, &rule.DeletedAt)
-	if err != nil {
+	item := &rr.RoutingRule{}
+	if err := r.db.QueryRow(ctx, `UPDATE provider_routing_rules_master SET is_active = $2 WHERE id = $1 RETURNING id, template_group_id, channel_id, preferred_provider_id, COALESCE(fallback_provider_id, 0), created_at, COALESCE(created_by, ''), COALESCE(is_active, false), COALESCE(version, 0)`, id, isActive).Scan(&item.ID, &item.TemplateGroupID, &item.ChannelID, &item.PreferredProviderID, &item.FallbackProviderID, &item.CreatedAt, &item.CreatedBy, &item.IsActive, &item.Version); err != nil {
 		return nil, err
 	}
-	return rule, nil
+	return item, nil
 }
-
 func (r *RoutingRuleRepository) Delete(ctx context.Context, id int) error {
-	query := `
-		UPDATE routing_rules
-		SET deleted_at = NOW()
-		WHERE id = $1 AND deleted_at IS NULL
-	`
-	_, err := r.db.Exec(ctx, query, id)
+	_, err := r.db.Exec(ctx, `UPDATE provider_routing_rules_master SET is_active = false WHERE id = $1`, id)
 	return err
 }
