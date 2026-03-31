@@ -1,0 +1,88 @@
+<div class="container">
+  <h2>Languages Management</h2>
+
+  <!-- Search + Add -->
+  <div class="top-bar">
+    <input type="text" placeholder="Search language..." [(ngModel)]="searchText" />
+    <button (click)="openAddForm()">+ Add Language</button>
+  </div>
+
+  <!-- Loader -->
+  <div *ngIf="loading" class="loader">Loading...</div>
+
+  <!-- Table -->
+  <table *ngIf="!loading">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Code</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let lang of paginatedLanguages">
+        <td>{{ lang.name }}</td>
+        <td>{{ lang.code }}</td>
+        <td>{{ lang.status }}</td>
+        <td>
+          <button (click)="editLanguage(lang)">Edit</button>
+          <button (click)="deleteLanguage(lang.id)">Delete</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Pagination -->
+  <div class="pagination">
+    <button (click)="currentPage = currentPage - 1" [disabled]="currentPage === 1">Prev</button>
+    <span>Page {{ currentPage }}</span>
+    <button (click)="currentPage = currentPage + 1">Next</button>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal" *ngIf="showModal">
+    <div class="modal-content">
+      <h3>{{ isEditMode ? 'Edit Language' : 'Add Language' }}</h3>
+      <label class="field">
+        <span>Name</span>
+        <input
+          placeholder="Language name"
+          [(ngModel)]="newLanguage.name"
+          maxlength="100"
+          (ngModelChange)="onNameInput()"
+        />
+        <small class="hint">Use a clear unique language name.</small>
+        <small class="error-text" *ngIf="validationErrors['name']">{{ validationErrors['name'] }}</small>
+      </label>
+      <label class="field">
+        <span>Code</span>
+        <input
+          placeholder="EN"
+          [(ngModel)]="newLanguage.code"
+          maxlength="10"
+          (ngModelChange)="onCodeInput()"
+        />
+        <small class="hint">2 to 10 letters only. It will be saved in uppercase.</small>
+        <small class="error-text" *ngIf="validationErrors['code']">{{ validationErrors['code'] }}</small>
+      </label>
+      <label class="field">
+        <span>Status</span>
+      <select [(ngModel)]="newLanguage.status" (ngModelChange)="onStatusChange()">
+        <option>Active</option>
+        <option>Inactive</option>
+      </select>
+      <small class="error-text" *ngIf="validationErrors['status']">{{ validationErrors['status'] }}</small>
+      </label>
+      <div class="modal-actions">
+        <button (click)="saveLanguage()">Save</button>
+        <button (click)="closeModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" *ngIf="showToastFlag">
+    {{ toastMessage }}
+  </div>
+</div>
