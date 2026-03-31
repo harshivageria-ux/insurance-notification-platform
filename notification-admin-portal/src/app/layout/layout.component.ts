@@ -206,7 +206,7 @@ export class LayoutComponent {
     },
     {
       title: 'Templates & Routing',
-      routes: ['template-groups', 'templates', 'routing-rules'],
+      routes: ['template-groups', 'templates', 'routing-rules', 'mappings'],
     },
   ];
 

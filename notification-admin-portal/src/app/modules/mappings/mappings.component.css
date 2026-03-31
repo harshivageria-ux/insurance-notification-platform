@@ -1,0 +1,12 @@
+.page-title { margin-bottom: 20px; }
+.mapping-section { background: #fff; border: 1px solid #e6ebf5; border-radius: 10px; margin-bottom: 24px; padding: 16px; }
+.mapping-form { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; align-items: end; margin-bottom: 16px; }
+.form-row label { display: block; font-weight: 700; margin-bottom: 6px; }
+.form-control { width: 100%; padding: 8px 10px; border: 1px solid #c5cee0; border-radius: 6px; }
+.btn { min-width: 140px; }
+.table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+.table th, .table td { border: 1px solid #e6ebf5; padding: 8px 12px; }
+.table th { background: #f6f8fb; }
+.alert { padding: 10px 12px; border-radius: 6px; margin: 10px 0; }
+.alert-success { background: #eaf8ed; color: #175a20; }
+.alert-danger { background: #fdecef; color: #821a1a; }

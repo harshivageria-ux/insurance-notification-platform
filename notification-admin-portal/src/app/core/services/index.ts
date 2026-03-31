@@ -5,3 +5,5 @@
 
 export * from './error-handler.service';
 export * from './loader.service';
+export * from './mapping.service';
+export * from './logger.service';
