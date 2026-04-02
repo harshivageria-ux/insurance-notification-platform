@@ -1,0 +1,22 @@
+[31m×[39m Building... [31m[FAILED: spawn EPERM][39m
+C:\Users\harshi.vageria\Documents\Insurance project\insurance-notification-platform\notification-admin-portal\node_modules\rxjs\dist\cjs\internal\util\reportUnhandledError.js:13
+            throw err;
+            ^
+
+Error: spawn EPERM
+    at ChildProcess.spawn (node:internal/child_process:421:11)
+    at Object.spawn (node:child_process:796:9)
+    at ensureServiceIsRunning (C:\Users\harshi.vageria\Documents\Insurance project\insurance-notification-platform\notification-admin-portal\node_modules\esbuild\lib\main.js:1978:29)
+    at context (C:\Users\harshi.vageria\Documents\Insurance project\insurance-notification-platform\notification-admin-portal\node_modules\esbuild\lib\main.js:1877:33)
+    at #performBundle (C:\Users\harshi.vageria\Documents\Insurance project\insurance-notification-platform\notification-admin-portal\node_modules\@angular\build\src\tools\esbuild\bundler-context.js:165:68)
+    at BundlerContext.bundle (C:\Users\harshi.vageria\Documents\Insurance project\insurance-notification-platform\notification-admin-portal\node_modules\@angular\build\src\tools\esbuild\bundler-context.js:138:49)
+    at C:\Users\harshi.vageria\Documents\Insurance project\insurance-notification-platform\notification-admin-portal\node_modules\@angular\build\src\tools\esbuild\bundler-context.js:67:28
+    at Array.map (<anonymous>)
+    at BundlerContext.bundleAll (C:\Users\harshi.vageria\Documents\Insurance project\insurance-notification-platform\notification-admin-portal\node_modules\@angular\build\src\tools\esbuild\bundler-context.js:63:67)
+    at executeBuild (C:\Users\harshi.vageria\Documents\Insurance project\insurance-notification-platform\notification-admin-portal\node_modules\@angular\build\src\builders\application\execute-build.js:110:65) {
+  errno: -4048,
+  code: 'EPERM',
+  syscall: 'spawn'
+}
+
+Node.js v24.14.1

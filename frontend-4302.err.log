@@ -1,0 +1,193 @@
+[1m[33mNG02801: Angular detected that `HttpClient` is not configured to use `fetch` APIs. It's strongly recommended to enable `fetch` for applications that use Server-Side Rendering for better performance and compatibility. To enable `fetch`, add the `withFetch()` to the `provideHttpClient()` call at the root of the application.[39m[22m
+[1m[31m(node:10100) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'onFieldValueChange' does not exist on type 'EntityManagementComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/modules/entity-management/entity-management.component.ts:135:31:
+[37m      135 │               (ngModelChange)="[32monFieldValueChange[37m(field)"
+          ╵                                [32m~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'fieldErrors' does not exist on type 'EntityManagementComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/modules/entity-management/entity-management.component.ts:136:35:
+[37m      136 │               [class.input-error]="[32mfieldErrors[37m[field.key]"
+          ╵                                    [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'onFieldValueChange' does not exist on type 'EntityManagementComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/modules/entity-management/entity-management.component.ts:144:31:
+[37m      144 │               (ngModelChange)="[32monFieldValueChange[37m(field)"
+          ╵                                [32m~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'fieldErrors' does not exist on type 'EntityManagementComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/modules/entity-management/entity-management.component.ts:145:35:
+[37m      145 │               [class.input-error]="[32mfieldErrors[37m[field.key]"
+          ╵                                    [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'onFieldValueChange' does not exist on type 'EntityManagementComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/modules/entity-management/entity-management.component.ts:148:104:
+[37m      148 │ ...ey]" (ngModelChange)="[32monFieldValueChange[37m(field)" [class.input-...
+          ╵                          [32m~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'fieldErrors' does not exist on type 'EntityManagementComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/modules/entity-management/entity-management.component.ts:148:152:
+[37m      148 │ ...ValueChange(field)" [class.input-error]="[32mfieldErrors[37m[field.key]">
+          ╵                                             [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'fieldErrors' does not exist on type 'EntityManagementComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/modules/entity-management/entity-management.component.ts:153:46:
+[37m      153 │ ...lass="field-error" *ngIf="[32mfieldErrors[37m[field.key]">{{ fieldErro...
+          ╵                              [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'fieldErrors' does not exist on type 'EntityManagementComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/modules/entity-management/entity-management.component.ts:153:73:
+[37m      153 │ ...gIf="fieldErrors[field.key]">{{ [32mfieldErrors[37m[field.key] }}</small>
+          ╵                                    [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'modalErrorMessage' does not exist on type 'EntityManagementComponent'. Did you mean 'errorMessage'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/modules/entity-management/entity-management.component.ts:157:38:
+[37m      157 │ ...s="modal-error" *ngIf="[32mmodalErrorMessage[37m">{{ modalErrorMessage...
+          ╵                           [32m~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'modalErrorMessage' does not exist on type 'EntityManagementComponent'. Did you mean 'errorMessage'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/modules/entity-management/entity-management.component.ts:157:60:
+[37m      157 │ ...odal-error" *ngIf="modalErrorMessage">{{ [32mmodalErrorMessage[37m }}</p>
+          ╵                                             [32m~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'onFieldValueChange' does not exist on type 'EntityManagementComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/modules/entity-management/entity-management.component.ts:135:31:
+[37m      135 │               (ngModelChange)="[32monFieldValueChange[37m(field)"
+          ╵                                [32m~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'fieldErrors' does not exist on type 'EntityManagementComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/modules/entity-management/entity-management.component.ts:136:35:
+[37m      136 │               [class.input-error]="[32mfieldErrors[37m[field.key]"
+          ╵                                    [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'onFieldValueChange' does not exist on type 'EntityManagementComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/modules/entity-management/entity-management.component.ts:144:31:
+[37m      144 │               (ngModelChange)="[32monFieldValueChange[37m(field)"
+          ╵                                [32m~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'fieldErrors' does not exist on type 'EntityManagementComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/modules/entity-management/entity-management.component.ts:145:35:
+[37m      145 │               [class.input-error]="[32mfieldErrors[37m[field.key]"
+          ╵                                    [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'onFieldValueChange' does not exist on type 'EntityManagementComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/modules/entity-management/entity-management.component.ts:148:104:
+[37m      148 │ ...ey]" (ngModelChange)="[32monFieldValueChange[37m(field)" [class.input-...
+          ╵                          [32m~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'fieldErrors' does not exist on type 'EntityManagementComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/modules/entity-management/entity-management.component.ts:148:152:
+[37m      148 │ ...ValueChange(field)" [class.input-error]="[32mfieldErrors[37m[field.key]">
+          ╵                                             [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'fieldErrors' does not exist on type 'EntityManagementComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/modules/entity-management/entity-management.component.ts:153:46:
+[37m      153 │ ...lass="field-error" *ngIf="[32mfieldErrors[37m[field.key]">{{ fieldErro...
+          ╵                              [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'fieldErrors' does not exist on type 'EntityManagementComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/modules/entity-management/entity-management.component.ts:153:73:
+[37m      153 │ ...gIf="fieldErrors[field.key]">{{ [32mfieldErrors[37m[field.key] }}</small>
+          ╵                                    [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'modalErrorMessage' does not exist on type 'EntityManagementComponent'. Did you mean 'errorMessage'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/modules/entity-management/entity-management.component.ts:157:38:
+[37m      157 │ ...s="modal-error" *ngIf="[32mmodalErrorMessage[37m">{{ modalErrorMessage...
+          ╵                           [32m~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'modalErrorMessage' does not exist on type 'EntityManagementComponent'. Did you mean 'errorMessage'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/modules/entity-management/entity-management.component.ts:157:60:
+[37m      157 │ ...odal-error" *ngIf="modalErrorMessage">{{ [32mmodalErrorMessage[37m }}</p>
+          ╵                                             [32m~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'onFieldValueChange' does not exist on type 'EntityManagementComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/modules/entity-management/entity-management.component.ts:135:31:
+[37m      135 │               (ngModelChange)="[32monFieldValueChange[37m(field)"
+          ╵                                [32m~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'onFieldValueChange' does not exist on type 'EntityManagementComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/modules/entity-management/entity-management.component.ts:144:31:
+[37m      144 │               (ngModelChange)="[32monFieldValueChange[37m(field)"
+          ╵                                [32m~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'onFieldValueChange' does not exist on type 'EntityManagementComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/modules/entity-management/entity-management.component.ts:148:104:
+[37m      148 │ ...ey]" (ngModelChange)="[32monFieldValueChange[37m(field)" [class.input-...
+          ╵                          [32m~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'onFieldValueChange' does not exist on type 'EntityManagementComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/modules/entity-management/entity-management.component.ts:135:31:
+[37m      135 │               (ngModelChange)="[32monFieldValueChange[37m(field)"
+          ╵                                [32m~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'onFieldValueChange' does not exist on type 'EntityManagementComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/modules/entity-management/entity-management.component.ts:144:31:
+[37m      144 │               (ngModelChange)="[32monFieldValueChange[37m(field)"
+          ╵                                [32m~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'onFieldValueChange' does not exist on type 'EntityManagementComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/modules/entity-management/entity-management.component.ts:148:104:
+[37m      148 │ ...ey]" (ngModelChange)="[32monFieldValueChange[37m(field)" [class.input-...
+          ╵                          [32m~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'validateForm' does not exist on type 'EntityManagementComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/modules/entity-management/entity-management.component.ts:593:28:
+[37m      593 │     this.fieldErrors = this.[32mvalidateForm[37m();
+          ╵                             [32m~~~~~~~~~~~~[0m
+
+[39m[22m
+^C^C
