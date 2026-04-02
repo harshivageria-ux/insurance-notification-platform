@@ -4,6 +4,7 @@ import { DashboardComponent } from './modules/dashboard/dashboard.component';
 import { EntityManagementComponent } from './modules/entity-management/entity-management.component';
 import { ENTITY_SECTION_MAP } from './core/config/entity-sections.config';
 import { ProviderSettingsComponent } from './modules/provider-settings/provider-settings.component';
+import { TemplatePageComponent } from './modules/templates/template-page.component';
 
 export const routes: Routes = [
   {
@@ -21,7 +22,7 @@ export const routes: Routes = [
       { path: 'channel-providers', component: EntityManagementComponent, data: { section: ENTITY_SECTION_MAP['channel-providers'] } },
       { path: 'channel-providers/:providerId/provider-settings', component: ProviderSettingsComponent },
       { path: 'template-groups', component: EntityManagementComponent, data: { section: ENTITY_SECTION_MAP['template-groups'] } },
-      { path: 'templates', component: EntityManagementComponent, data: { section: ENTITY_SECTION_MAP['templates'] } },
+      { path: 'templates', component: TemplatePageComponent },
       { path: 'routing-rules', component: EntityManagementComponent, data: { section: ENTITY_SECTION_MAP['routing-rules'] } }
     ]
   }

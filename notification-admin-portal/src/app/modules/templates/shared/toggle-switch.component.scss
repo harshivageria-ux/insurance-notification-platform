@@ -1,0 +1,37 @@
+.toggle {
+  width: 42px;
+  height: 24px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 23, 42, 0.18);
+  background: rgba(148, 163, 184, 0.6);
+  display: inline-flex;
+  align-items: center;
+  padding: 2px;
+  transition: background 150ms ease, border-color 150ms ease;
+  cursor: pointer;
+}
+
+.thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.18);
+  transform: translateX(0);
+  transition: transform 150ms ease;
+}
+
+.toggle-on {
+  background: rgba(34, 197, 94, 0.75);
+  border-color: rgba(34, 197, 94, 0.45);
+}
+
+.toggle-on .thumb {
+  transform: translateX(18px);
+}
+
+.toggle-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+

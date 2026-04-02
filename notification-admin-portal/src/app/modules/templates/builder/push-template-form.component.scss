@@ -1,0 +1,96 @@
+.form {
+  display: block;
+}
+
+.grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: rgba(15, 23, 42, 0.72);
+}
+
+.input,
+.textarea,
+select.input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(255, 255, 255, 0.9);
+  font-family: inherit;
+}
+
+.textarea {
+  resize: vertical;
+}
+
+.error {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(239, 68, 68, 0.95);
+}
+
+.variables {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 22px;
+  padding: 14px;
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.06);
+}
+
+.variables-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.variables-title {
+  font-size: 13px;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.variables-subtitle {
+  font-size: 12px;
+  color: rgba(15, 23, 42, 0.55);
+  margin-top: 2px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.switch-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.switch-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(15, 23, 42, 0.68);
+}
+
+@media (min-width: 900px) {
+  .row {
+    grid-template-columns: 1fr 220px 220px;
+    align-items: end;
+  }
+}
+

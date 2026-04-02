@@ -1,0 +1,44 @@
+.image-field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(15, 23, 42, 0.78);
+  letter-spacing: 0.02em;
+}
+
+.input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.preview {
+  border-radius: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 10px;
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.06);
+}
+
+.preview img {
+  width: 100%;
+  max-height: 160px;
+  object-fit: cover;
+  border-radius: 12px;
+  display: block;
+}
+
+.preview-error {
+  margin-top: 8px;
+  font-size: 12px;
+  color: rgba(239, 68, 68, 0.95);
+  font-weight: 600;
+}
+
