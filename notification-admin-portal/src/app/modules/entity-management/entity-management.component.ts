@@ -143,7 +143,7 @@ import { EntityCrudService } from '../../services/entity-crud.service';
 
             <textarea
               *ngIf="field.type === 'textarea'"
-              rows="4"
+              rows="7"
               [placeholder]="field.placeholder || ''"
               [(ngModel)]="formModel[field.key]"
               (ngModelChange)="onFieldValueChange(field)"
@@ -164,6 +164,28 @@ import { EntityCrudService } from '../../services/entity-crud.service';
         <div class="modal-actions">
           <button class="secondary-btn" (click)="closeModal()">Cancel</button>
           <button class="primary-btn" (click)="saveItem()">{{ isEditMode ? 'Update' : 'Save' }}</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" *ngIf="showDeleteConfirm" (click)="closeDeleteConfirm()">
+      <div class="modal-card confirm-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Delete {{ singularTitle }}</h2>
+          <button class="icon-btn" (click)="closeDeleteConfirm()">x</button>
+        </div>
+
+        <p class="confirm-message">
+          This will deactivate the record (soft delete). You can re-enable it later from the toggle action.
+        </p>
+
+        <div class="confirm-details" *ngIf="deleteCandidateLabel">
+          <span class="confirm-pill">{{ deleteCandidateLabel }}</span>
+        </div>
+
+        <div class="modal-actions">
+          <button class="secondary-btn" (click)="closeDeleteConfirm()">Cancel</button>
+          <button class="danger-btn" (click)="confirmDelete()">Delete</button>
         </div>
       </div>
     </div>
@@ -448,7 +470,37 @@ import { EntityCrudService } from '../../services/entity-crud.service';
 
     .field textarea {
       resize: vertical;
-      min-height: 120px;
+      min-height: 180px;
+    }
+
+    .confirm-card {
+      width: min(560px, 100%);
+    }
+
+    .confirm-message {
+      margin: 8px 0 0;
+      color: #60708d;
+      line-height: 1.5;
+      font-weight: 600;
+    }
+
+    .confirm-details {
+      margin-top: 14px;
+    }
+
+    .confirm-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #f1f6ff;
+      border: 1px solid #dbe7ff;
+      color: #20304f;
+      font-weight: 800;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     @media (max-width: 900px) {
@@ -475,6 +527,9 @@ export class EntityManagementComponent implements OnInit {
   currentPage = 1;
   pageSize = 8;
   showModal = false;
+  showDeleteConfirm = false;
+  private deleteCandidateId: EntityIdentifier | null = null;
+  deleteCandidateLabel = '';
   isEditMode = false;
   editingId: EntityIdentifier | null = null;
   errorMessage = '';
@@ -644,13 +699,57 @@ export class EntityManagementComponent implements OnInit {
 
   deleteItem(item: EntityRecord): void {
     const id = this.getItemId(item);
-    if ((id === null || id === undefined || id === '') || !confirm(`Delete this ${this.singularTitle.toLowerCase()}?`)) {
+    if (id === null || id === undefined || id === '') {
+      return;
+    }
+    this.deleteCandidateId = id;
+    this.deleteCandidateLabel = this.buildDeleteLabel(item);
+    this.showDeleteConfirm = true;
+  }
+
+  closeDeleteConfirm(): void {
+    this.showDeleteConfirm = false;
+    this.deleteCandidateId = null;
+    this.deleteCandidateLabel = '';
+  }
+
+  confirmDelete(): void {
+    if (this.deleteCandidateId === null || this.deleteCandidateId === undefined || this.deleteCandidateId === '') {
+      this.closeDeleteConfirm();
       return;
     }
 
-    this.hiddenItemIds.add(this.toHiddenItemKey(id));
-    this.items = this.items.filter((existingItem) => this.getItemId(existingItem) !== id);
-    this.currentPage = Math.min(this.currentPage, this.totalPages);
+    const id = this.deleteCandidateId;
+    this.closeDeleteConfirm();
+
+    // Soft-delete via backend DELETE if available; otherwise hide locally.
+    this.entityCrudService.delete(this.section.endpoint, id).subscribe({
+      next: () => {
+        this.hiddenItemIds.add(this.toHiddenItemKey(id));
+        this.items = this.items.filter((existingItem) => this.getItemId(existingItem) !== id);
+        this.currentPage = Math.min(this.currentPage, this.totalPages);
+      },
+      error: () => {
+        // Fallback: hide locally so UI continues smoothly.
+        this.hiddenItemIds.add(this.toHiddenItemKey(id));
+        this.items = this.items.filter((existingItem) => this.getItemId(existingItem) !== id);
+        this.currentPage = Math.min(this.currentPage, this.totalPages);
+      }
+    });
+  }
+
+  private buildDeleteLabel(item: EntityRecord): string {
+    const parts: string[] = [];
+    const primaryKeys = ['name', 'code', 'priority_code', 'status_code', 'schedule_code', 'setting_key', 'title_template'];
+    for (const key of primaryKeys) {
+      const value = item[key];
+      if (value !== null && value !== undefined && String(value).trim() !== '') {
+        parts.push(String(value).trim());
+      }
+      if (parts.length >= 2) break;
+    }
+    if (parts.length) return parts.join(' · ');
+    return `${this.singularTitle} #${String(this.getItemId(item))}`;
   }
 
   toggleItem(item: EntityRecord): void {

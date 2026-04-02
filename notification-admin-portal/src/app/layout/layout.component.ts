@@ -22,24 +22,29 @@ import { ENTITY_SECTIONS } from '../core/config/entity-sections.config';
             <span>Dashboard</span>
           </a>
 
-          <button type="button" class="nav-master" (click)="toggleSettings()" aria-expanded="{{ settingsExpanded }}">
-            <span class="icon">ST</span>
-            <span>Settings</span>
-          </button>
-
-          <div *ngIf="settingsExpanded" class="nav-submenu">
-            <div *ngFor="let group of settingsGroups" class="nav-group">
-              <div class="nav-group-title">{{ group.title }}</div>
-
-              <a
-                *ngFor="let route of group.routes"
-                [routerLink]="'/' + route"
-                routerLinkActive="active"
-                class="nav-item"
+          <div class="nav-accordion">
+            <div *ngFor="let group of navGroups" class="nav-group">
+              <button
+                type="button"
+                class="nav-group-toggle"
+                (click)="toggleGroup(group.key)"
+                [attr.aria-expanded]="isGroupExpanded(group.key)"
               >
-                <span class="icon">{{ getInitials(sectionByRoute(route)?.title || route) }}</span>
-                <span>{{ sectionByRoute(route)?.title || route }}</span>
-              </a>
+                <span class="nav-group-title">{{ group.title }}</span>
+                <span class="chevron" [class.chevron-open]="isGroupExpanded(group.key)">▾</span>
+              </button>
+
+              <div *ngIf="isGroupExpanded(group.key)" class="nav-submenu">
+                <a
+                  *ngFor="let route of group.routes"
+                  [routerLink]="'/' + route"
+                  routerLinkActive="active"
+                  class="nav-item"
+                >
+                  <span class="icon">{{ getInitials(sectionByRoute(route)?.title || route) }}</span>
+                  <span>{{ sectionByRoute(route)?.title || route }}</span>
+                </a>
+              </div>
             </div>
           </div>
         </nav>
@@ -94,42 +99,56 @@ import { ENTITY_SECTIONS } from '../core/config/entity-sections.config';
       padding: 18px 12px 0;
     }
 
-    .nav-master {
+    .nav-accordion {
       display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 14px;
-      color: #dfe7f3;
-      text-decoration: none;
-      border: 1px solid transparent;
-      border-radius: 14px;
-      background: transparent;
-      cursor: pointer;
-      font: inherit;
-      font-weight: 700;
-      text-align: left;
-      transition: all 0.2s ease;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 6px;
     }
 
-    .nav-master:hover {
+    .nav-group-toggle {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.04);
+      cursor: pointer;
+      color: #9fb6d6;
+      font: inherit;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 12px;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .nav-group-toggle:hover {
       background: rgba(255, 255, 255, 0.08);
-      border-color: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.14);
     }
 
     .nav-submenu {
-      padding-left: 2px;
+      padding: 10px 0 0 2px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 8px;
     }
 
-    .nav-group-title {
-      padding: 0 10px;
-      color: #9fb6d6;
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      font-weight: 700;
+    .chevron {
+      font-size: 14px;
+      line-height: 1;
+      transform: rotate(-90deg);
+      transition: transform 0.2s ease;
+      color: #dfe7f3;
+      opacity: 0.8;
+    }
+
+    .chevron-open {
+      transform: rotate(0deg);
     }
 
     .nav-item {
@@ -193,29 +212,40 @@ import { ENTITY_SECTIONS } from '../core/config/entity-sections.config';
   `]
 })
 export class LayoutComponent {
-  protected settingsExpanded = true;
-
-  protected readonly settingsGroups = [
+  protected readonly navGroups = [
     {
+      key: 'masters',
       title: 'Master Tables',
       routes: ['languages', 'priorities', 'statuses', 'schedule-types', 'categories'],
     },
     {
+      key: 'channels',
       title: 'Channels',
       routes: ['channels', 'channel-providers'],
     },
     {
+      key: 'templates',
       title: 'Templates & Routing',
-      routes: ['template-groups', 'templates', 'routing-rules', 'mappings'],
+      routes: ['template-groups', 'templates', 'routing-rules'],
     },
   ];
+
+  private expandedGroups = new Set<string>(['masters', 'channels', 'templates']);
 
   protected sectionByRoute(route: string) {
     return ENTITY_SECTIONS.find((s) => s.route === route);
   }
 
-  protected toggleSettings(): void {
-    this.settingsExpanded = !this.settingsExpanded;
+  protected isGroupExpanded(key: string): boolean {
+    return this.expandedGroups.has(key);
+  }
+
+  protected toggleGroup(key: string): void {
+    if (this.expandedGroups.has(key)) {
+      this.expandedGroups.delete(key);
+      return;
+    }
+    this.expandedGroups.add(key);
   }
 
   protected getInitials(title: string): string {

@@ -79,6 +79,7 @@ export class MappingsComponent implements OnInit {
     if (this.templateChannelLanguageForm.invalid) return;
 
     const payload = {
+      template_group_id: this.templateChannelLanguageForm.value.template_group_id,
       template_id: this.templateChannelLanguageForm.value.template_id,
       channel_id: this.templateChannelLanguageForm.value.channel_id,
       language_id: this.templateChannelLanguageForm.value.language_id,

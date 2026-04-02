@@ -27,6 +27,8 @@ const positiveIntegerRules = {
   integer: true
 } as const;
 
+const DEFAULT_ACTOR = 'admin';
+
 function text(value: unknown): string | null {
   if (value === null || value === undefined) {
     return null;
@@ -74,18 +76,17 @@ export const ENTITY_SECTIONS: EntitySectionConfig[] = [
     fields: [
       { key: 'name', label: 'Name', type: 'text', placeholder: 'English', required: true, table: true, searchable: true, ...nameFieldRules },
       { key: 'code', label: 'Code', type: 'text', placeholder: 'EN', required: true, table: true, searchable: true, width: '120px', ...codeFieldRules },
-      { key: 'created_by', label: 'Created By', type: 'text', placeholder: 'admin', table: false }
     ],
-    defaultItem: { name: '', code: '', created_by: 'admin' },
+    defaultItem: { name: '', code: '' },
     createPayload: (payload) => ({
       code: text(payload['code']),
       name: text(payload['name']),
-      created_by: text(payload['created_by'])
+      created_by: DEFAULT_ACTOR
     }),
     updatePayload: (payload) => ({
       code: text(payload['code']),
       name: text(payload['name']),
-      updated_by: text(payload['created_by'])
+      updated_by: DEFAULT_ACTOR
     }),
     searchPlaceholder: 'Search languages...'
   },
@@ -101,18 +102,17 @@ export const ENTITY_SECTIONS: EntitySectionConfig[] = [
       { key: 'priority_id', label: 'Priority ID', type: 'number', placeholder: '1', required: false, table: false, showInForm: false, width: '140px', ...positiveIntegerRules },
       { key: 'priority_code', label: 'Priority Code', type: 'text', placeholder: 'HIGH', table: true, searchable: true, ...codeFieldRules },
       { key: 'description', label: 'Description', type: 'textarea', placeholder: 'High priority', table: true, searchable: true, ...descriptionFieldRules },
-      { key: 'created_by', label: 'Created By', type: 'text', placeholder: 'admin', table: false }
     ],
-    defaultItem: { priority_code: '', description: '', created_by: 'admin' },
+    defaultItem: { priority_code: '', description: '' },
     createPayload: (payload) => ({
       priority_code: text(payload['priority_code']),
       description: text(payload['description']),
-      created_by: text(payload['created_by'])
+      created_by: DEFAULT_ACTOR
     }),
     updatePayload: (payload) => ({
       priority_code: text(payload['priority_code']),
       description: text(payload['description']),
-      created_by: text(payload['created_by'])
+      created_by: DEFAULT_ACTOR
     }),
     searchPlaceholder: 'Search priorities...'
   },
@@ -130,15 +130,14 @@ export const ENTITY_SECTIONS: EntitySectionConfig[] = [
       { key: 'name', label: 'Name', type: 'text', placeholder: 'Queued', required: true, table: true, searchable: true, ...nameFieldRules },
       { key: 'description', label: 'Description', type: 'textarea', placeholder: 'Current status description', table: true, searchable: true, ...descriptionFieldRules },
       { key: 'is_final', label: 'Final Status', type: 'select', required: true, table: true, options: [...booleanOptions], width: '140px' },
-      { key: 'created_by', label: 'Created By', type: 'text', placeholder: 'admin', table: false }
     ],
-    defaultItem: { status_code: '', name: '', description: '', is_final: false, created_by: 'admin' },
+    defaultItem: { status_code: '', name: '', description: '', is_final: false },
     createPayload: (payload) => ({
       status_code: text(payload['status_code']),
       name: text(payload['name']),
       description: text(payload['description']),
       is_final: booleanValue(payload['is_final']),
-      created_by: text(payload['created_by'])
+      created_by: DEFAULT_ACTOR
     }),
     updatePayload: (payload) => ({
       status_code: text(payload['status_code']),
@@ -160,13 +159,12 @@ export const ENTITY_SECTIONS: EntitySectionConfig[] = [
       { key: 'schedule_type_id', label: 'Schedule Type ID', type: 'number', placeholder: '1', required: false, table: false, showInForm: false, width: '160px', ...positiveIntegerRules },
       { key: 'schedule_code', label: 'Schedule Code', type: 'text', placeholder: 'IMMEDIATE', table: true, searchable: true, ...codeFieldRules },
       { key: 'description', label: 'Description', type: 'textarea', placeholder: 'Immediate delivery', table: true, searchable: true, ...descriptionFieldRules },
-      { key: 'created_by', label: 'Created By', type: 'text', placeholder: 'admin', table: false }
     ],
-    defaultItem: { schedule_code: '', description: '', created_by: 'admin' },
+    defaultItem: { schedule_code: '', description: '' },
     createPayload: (payload) => ({
       schedule_code: text(payload['schedule_code']),
       description: text(payload['description']),
-      created_by: text(payload['created_by'])
+      created_by: DEFAULT_ACTOR
     }),
     updatePayload: (payload) => ({
       schedule_code: text(payload['schedule_code']),
@@ -186,14 +184,13 @@ export const ENTITY_SECTIONS: EntitySectionConfig[] = [
       { key: 'code', label: 'Code', type: 'text', placeholder: 'PAYMENT', required: true, table: true, searchable: true, width: '160px', ...codeFieldRules },
       { key: 'name', label: 'Name', type: 'text', placeholder: 'Payment', required: true, table: true, searchable: true, ...nameFieldRules },
       { key: 'description', label: 'Description', type: 'textarea', placeholder: 'Category description', table: true, searchable: true, ...descriptionFieldRules },
-      { key: 'created_by', label: 'Created By', type: 'text', placeholder: 'admin', table: false }
     ],
-    defaultItem: { code: '', name: '', description: '', created_by: 'admin' },
+    defaultItem: { code: '', name: '', description: '' },
     createPayload: (payload) => ({
       code: text(payload['code']),
       name: text(payload['name']),
       description: text(payload['description']),
-      created_by: text(payload['created_by'])
+      created_by: DEFAULT_ACTOR
     }),
     updatePayload: (payload) => ({
       code: text(payload['code']),
@@ -216,14 +213,13 @@ export const ENTITY_SECTIONS: EntitySectionConfig[] = [
       { key: 'code', label: 'Code', type: 'text', placeholder: 'EMAIL', required: true, table: true, searchable: true, width: '140px', ...codeFieldRules },
       { key: 'name', label: 'Name', type: 'text', placeholder: 'Email', required: true, table: true, searchable: true, ...nameFieldRules },
       { key: 'description', label: 'Description', type: 'textarea', placeholder: 'Channel description', table: true, searchable: true, ...descriptionFieldRules },
-      { key: 'created_by', label: 'Created By', type: 'text', placeholder: 'admin', table: false }
     ],
-    defaultItem: { code: '', name: '', description: '', created_by: 'admin' },
+    defaultItem: { code: '', name: '', description: '' },
     createPayload: (payload) => ({
       code: text(payload['code']),
       name: text(payload['name']),
       description: text(payload['description']),
-      created_by: text(payload['created_by'])
+      created_by: DEFAULT_ACTOR
     }),
     updatePayload: (payload) => ({
       code: text(payload['code']),
@@ -239,7 +235,7 @@ export const ENTITY_SECTIONS: EntitySectionConfig[] = [
     subtitle: 'Manage providers assigned to a delivery channel.',
     endpoint: '/channel-providers',
     rowDetailRoute: '/channel-providers/:id/provider-settings',
-    rowDetailLabel: 'Provider Settings',
+    rowDetailLabel: 'Channel Provider Settings',
     idKey: 'id',
     toggleEndpoint: '/channel-providers/:id/toggle',
     supportsToggle: true,
@@ -249,15 +245,14 @@ export const ENTITY_SECTIONS: EntitySectionConfig[] = [
       { key: 'name', label: 'Name', type: 'text', placeholder: 'Twilio', required: true, table: true, searchable: true, ...nameFieldRules },
       { key: 'code', label: 'Code', type: 'text', placeholder: 'TWILIO', required: true, table: true, searchable: true, ...codeFieldRules },
       { key: 'priority', label: 'Priority', type: 'number', placeholder: '1', table: true, width: '120px', ...positiveIntegerRules },
-      { key: 'created_by', label: 'Created By', type: 'text', placeholder: 'admin', table: false }
     ],
-    defaultItem: { channel_id: '', name: '', code: '', priority: 1, created_by: 'admin' },
+    defaultItem: { channel_id: '', name: '', code: '', priority: 1 },
     createPayload: (payload) => ({
       channel_id: intValue(payload['channel_id']),
       name: text(payload['name']),
       code: text(payload['code']),
       priority: numberValue(payload['priority']),
-      created_by: text(payload['created_by'])
+      created_by: DEFAULT_ACTOR
     }),
     updatePayload: (payload) => ({
       name: text(payload['name']),
@@ -282,15 +277,14 @@ export const ENTITY_SECTIONS: EntitySectionConfig[] = [
       { key: 'setting_key', label: 'Setting Key', type: 'text', placeholder: 'api_key', required: true, table: true, searchable: true, minLength: 2, maxLength: 100, pattern: '^[A-Za-z0-9_.-]{2,100}$', patternMessage: 'Use 2 to 100 letters, numbers, dots, hyphens, or underscores.' },
       { key: 'setting_value', label: 'Setting Value', type: 'textarea', placeholder: 'Setting value', required: true, table: true, maxLength: 2000 },
       { key: 'is_sensitive', label: 'Sensitive', type: 'select', required: true, table: true, options: [...booleanOptions], width: '120px' },
-      { key: 'created_by', label: 'Created By', type: 'text', placeholder: 'admin', table: false }
     ],
-    defaultItem: { provider_id: '', setting_key: '', setting_value: '', is_sensitive: false, created_by: 'admin' },
+    defaultItem: { provider_id: '', setting_key: '', setting_value: '', is_sensitive: false },
     createPayload: (payload) => ({
       provider_id: intValue(payload['provider_id']),
       setting_key: text(payload['setting_key']),
       setting_value: text(payload['setting_value']),
       is_sensitive: booleanValue(payload['is_sensitive']),
-      created_by: text(payload['created_by'])
+      created_by: DEFAULT_ACTOR
     }),
     updatePayload: (payload) => ({
       setting_key: text(payload['setting_key']),
@@ -311,14 +305,13 @@ export const ENTITY_SECTIONS: EntitySectionConfig[] = [
       { key: 'name', label: 'Name', type: 'text', placeholder: 'Payment Alerts', required: true, table: true, searchable: true, ...nameFieldRules },
       { key: 'category_id', label: 'Category', type: 'select', required: true, table: false, searchable: true, dataEndpoint: '/categories', optionValueKey: 'id', optionLabelKeys: ['name', 'code'], optionFilterActive: true },
       { key: 'description', label: 'Description', type: 'textarea', placeholder: 'Group description', table: true, searchable: true, ...descriptionFieldRules },
-      { key: 'created_by', label: 'Created By', type: 'text', placeholder: 'admin', table: false }
     ],
-    defaultItem: { name: '', category_id: '', description: '', created_by: 'admin' },
+    defaultItem: { name: '', category_id: '', description: '' },
     createPayload: (payload) => ({
       name: text(payload['name']),
       category_id: intValue(payload['category_id']),
       description: text(payload['description']),
-      created_by: text(payload['created_by'])
+      created_by: DEFAULT_ACTOR
     }),
     updatePayload: (payload) => ({
       name: text(payload['name']),
@@ -342,7 +335,6 @@ export const ENTITY_SECTIONS: EntitySectionConfig[] = [
       { key: 'title_template', label: 'Title Template', type: 'textarea', placeholder: 'Policy Update', table: true, maxLength: 250 },
       { key: 'message_template', label: 'Message Template', type: 'textarea', placeholder: 'Hello {{name}}', required: true, table: true, maxLength: 5000 },
       { key: 'has_variables', label: 'Has Variables', type: 'select', required: true, table: true, options: [...booleanOptions], width: '140px' },
-      { key: 'created_by', label: 'Created By', type: 'text', placeholder: 'admin', table: false }
     ],
     defaultItem: {
       template_group_id: '',
@@ -351,7 +343,6 @@ export const ENTITY_SECTIONS: EntitySectionConfig[] = [
       title_template: '',
       message_template: '',
       has_variables: false,
-      created_by: 'admin'
     },
     createPayload: (payload) => ({
       template_group_id: intValue(payload['template_group_id']),
@@ -360,7 +351,7 @@ export const ENTITY_SECTIONS: EntitySectionConfig[] = [
       title_template: text(payload['title_template']),
       message_template: text(payload['message_template']),
       has_variables: booleanValue(payload['has_variables']),
-      created_by: text(payload['created_by'])
+      created_by: DEFAULT_ACTOR
     }),
     updatePayload: (payload) => ({
       template_group_id: intValue(payload['template_group_id']),
@@ -387,21 +378,19 @@ export const ENTITY_SECTIONS: EntitySectionConfig[] = [
       { key: 'channel_id', label: 'Channel', type: 'select', required: true, table: true, searchable: true, dataEndpoint: '/channels', optionValueKey: 'id', optionLabelKeys: ['name', 'code'], optionFilterActive: true },
       { key: 'preferred_provider_id', label: 'Preferred Provider', type: 'select', required: true, table: true, searchable: true, dataEndpoint: '/channel-providers', optionValueKey: 'id', optionLabelKeys: ['name', 'code'], optionFilterActive: true },
       { key: 'fallback_provider_id', label: 'Fallback Provider', type: 'select', table: true, searchable: true, dataEndpoint: '/channel-providers', optionValueKey: 'id', optionLabelKeys: ['name', 'code'], optionFilterActive: true },
-      { key: 'created_by', label: 'Created By', type: 'text', placeholder: 'admin', table: false }
     ],
     defaultItem: {
       template_group_id: '',
       channel_id: '',
       preferred_provider_id: '',
       fallback_provider_id: '',
-      created_by: 'admin'
     },
     createPayload: (payload) => ({
       template_group_id: intValue(payload['template_group_id']),
       channel_id: intValue(payload['channel_id']),
       preferred_provider_id: intValue(payload['preferred_provider_id']),
       fallback_provider_id: intValue(payload['fallback_provider_id']),
-      created_by: text(payload['created_by'])
+      created_by: DEFAULT_ACTOR
     }),
     updatePayload: (payload) => ({
       preferred_provider_id: intValue(payload['preferred_provider_id']),

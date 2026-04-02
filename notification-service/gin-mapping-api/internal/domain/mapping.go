@@ -9,7 +9,6 @@ type NotificationCategoryChannel struct {
 	ChannelID  int       `json:"channel_id"`
 	IsActive   bool      `json:"is_active"`
 	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
 }
 
 // ChannelProviderMasterMap represents mapping between channel and provider
@@ -17,20 +16,19 @@ type ChannelProviderMasterMap struct {
 	ID         int       `json:"id"`
 	ChannelID  int       `json:"channel_id"`
 	ProviderID int       `json:"provider_id"`
+	Priority   int       `json:"priority"`
 	IsActive   bool      `json:"is_active"`
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
 }
 
 // TemplateChannelLanguageMasterMap represents template->channel->language mapping
 type TemplateChannelLanguageMasterMap struct {
 	ID         int       `json:"id"`
+	TemplateGroupID int  `json:"template_group_id"`
 	TemplateID int       `json:"template_id"`
 	ChannelID  int       `json:"channel_id"`
 	LanguageID int       `json:"language_id"`
 	IsActive   bool      `json:"is_active"`
 	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
 }
 
 // Create requests
@@ -43,9 +41,11 @@ type CreateNotificationCategoryChannelRequest struct {
 type CreateChannelProviderMasterMapRequest struct {
 	ChannelID  int `json:"channel_id" binding:"required"`
 	ProviderID int `json:"provider_id" binding:"required"`
+	Priority   int `json:"priority" binding:"required"`
 }
 
 type CreateTemplateChannelLanguageMasterMapRequest struct {
+	TemplateGroupID int `json:"template_group_id" binding:"required"`
 	TemplateID int `json:"template_id" binding:"required"`
 	ChannelID  int `json:"channel_id" binding:"required"`
 	LanguageID int `json:"language_id" binding:"required"`

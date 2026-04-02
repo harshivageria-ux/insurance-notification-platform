@@ -128,6 +128,15 @@ func (s *Server) Routes() http.Handler {
 		r.Delete("/{id}", s.deactivateProviderSetting)
 	})
 
+	// Channel Provider Settings routes (alias of provider-settings)
+	// Storage is in `channel_provider_settings_master` (PostgreSQL).
+	r.Route("/channel-provider-settings", func(r chi.Router) {
+		r.Get("/{provider_id}", s.listProviderSettings)
+		r.Post("/", s.createProviderSetting)
+		r.Put("/{id}", s.updateProviderSetting)
+		r.Delete("/{id}", s.deactivateProviderSetting)
+	})
+
 	// Template Group routes
 	r.Route("/template-groups", func(r chi.Router) {
 		r.Get("/", s.listTemplateGroups)

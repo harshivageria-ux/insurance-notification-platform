@@ -22,8 +22,7 @@ export const routes: Routes = [
       { path: 'channel-providers/:providerId/provider-settings', component: ProviderSettingsComponent },
       { path: 'template-groups', component: EntityManagementComponent, data: { section: ENTITY_SECTION_MAP['template-groups'] } },
       { path: 'templates', component: EntityManagementComponent, data: { section: ENTITY_SECTION_MAP['templates'] } },
-      { path: 'routing-rules', component: EntityManagementComponent, data: { section: ENTITY_SECTION_MAP['routing-rules'] } },
-      { path: 'mappings', loadComponent: () => import('./modules/mappings/mappings.component').then(m => m.MappingsComponent) }
+      { path: 'routing-rules', component: EntityManagementComponent, data: { section: ENTITY_SECTION_MAP['routing-rules'] } }
     ]
   }
 ];

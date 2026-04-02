@@ -9,8 +9,13 @@ type ProtocolKey = 'http' | 'smtp' | 'pop';
 
 type HttpSettings = {
   baseUrl: string;
-  username: string;
-  password: string;
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  authType: 'none' | 'bearer' | 'apiKey';
+  token: string;
+  apiKeyName: string;
+  apiKeyValue: string;
+  headers: Array<{ key: string; value: string }>;
+  bodyTemplate: string;
 };
 
 type SmtpSettings = {
@@ -39,7 +44,7 @@ type PopSettings = {
         <div>
           <p class="eyebrow">Admin Portal</p>
           <h1>Provider Settings</h1>
-          <p class="subtitle">Configure HTTP / SMTP / POP credentials for provider ID {{ providerId }}</p>
+          <p class="subtitle">Configure HTTP / SMTP / POP settings for provider ID {{ providerId }}</p>
         </div>
         <div class="header-actions">
           <a routerLink="/channel-providers" class="secondary-link">Back</a>
@@ -58,19 +63,63 @@ type PopSettings = {
           <div class="form-grid">
             <label class="field">
               <span>Base URL</span>
-              <input type="text" [(ngModel)]="http.baseUrl" placeholder="https://example.com/api" />
+              <input type="text" [(ngModel)]="http.baseUrl" placeholder="https://example.com/api" required />
             </label>
 
             <label class="field">
-              <span>Username</span>
-              <input type="text" [(ngModel)]="http.username" placeholder="username" />
+              <span>HTTP Method</span>
+              <select [(ngModel)]="http.method">
+                <option value="GET">GET</option>
+                <option value="POST">POST</option>
+                <option value="PUT">PUT</option>
+                <option value="DELETE">DELETE</option>
+              </select>
             </label>
 
             <label class="field">
-              <span>Password</span>
-              <input type="password" [(ngModel)]="http.password" placeholder="password" />
+              <span>Auth Type</span>
+              <select [(ngModel)]="http.authType">
+                <option value="none">None</option>
+                <option value="bearer">Bearer Token</option>
+                <option value="apiKey">API Key</option>
+              </select>
             </label>
           </div>
+
+          <div class="form-grid auth-grid" *ngIf="http.authType === 'bearer'">
+            <label class="field">
+              <span>Token</span>
+              <input type="text" [(ngModel)]="http.token" placeholder="Paste bearer token" />
+            </label>
+          </div>
+
+          <div class="form-grid auth-grid" *ngIf="http.authType === 'apiKey'">
+            <label class="field">
+              <span>Key Name</span>
+              <input type="text" [(ngModel)]="http.apiKeyName" placeholder="x-api-key" />
+            </label>
+            <label class="field">
+              <span>Key Value</span>
+              <input type="text" [(ngModel)]="http.apiKeyValue" placeholder="api key value" />
+            </label>
+          </div>
+
+          <div class="section-title">Headers</div>
+          <div class="header-row" *ngFor="let header of http.headers; let i = index">
+            <input type="text" [(ngModel)]="header.key" placeholder="Header key" />
+            <input type="text" [(ngModel)]="header.value" placeholder="Header value" />
+            <button type="button" class="ghost-btn" (click)="removeHeader(i)">Remove</button>
+          </div>
+          <button type="button" class="ghost-btn" (click)="addHeader()">Add Header</button>
+
+          <label class="field body-template">
+            <span>Request Body Template</span>
+            <textarea
+              [(ngModel)]="http.bodyTemplate"
+              rows="8"
+              [attr.placeholder]="requestBodyTemplatePlaceholder"
+            ></textarea>
+          </label>
         </div>
 
         <!-- SMTP -->
@@ -210,13 +259,49 @@ type PopSettings = {
       }
       input[type='text'],
       input[type='number'],
-      input[type='password'] {
+      input[type='password'],
+      select,
+      textarea {
         border: 1px solid #cfd9e6;
         border-radius: 14px;
         padding: 12px 14px;
         font: inherit;
         background: #ffffff;
         color: #162033;
+      }
+      textarea {
+        resize: vertical;
+        min-height: 120px;
+      }
+      .section-title {
+        margin: 16px 0 10px;
+        color: #31415f;
+        font-size: 0.92rem;
+        font-weight: 700;
+      }
+      .header-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+      .ghost-btn {
+        border: 1px solid #cfd9e6;
+        background: #fff;
+        color: #31415f;
+        border-radius: 10px;
+        padding: 8px 12px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      .ghost-btn:hover {
+        background: #f7f9fc;
+      }
+      .auth-grid {
+        margin-top: 14px;
+      }
+      .body-template {
+        margin-top: 14px;
       }
       .checkbox {
         flex-direction: row;
@@ -258,9 +343,19 @@ export class ProviderSettingsComponent implements OnInit {
   providerId = 0;
   activeTab: ProtocolKey = 'http';
   saveMessage = '';
+  requestBodyTemplatePlaceholder = '{\n  "to": "{{phone}}",\n  "message": "{{message}}"\n}';
 
   // Local UI model (stored in provider_settings.setting_value as JSON)
-  http: HttpSettings = { baseUrl: '', username: '', password: '' };
+  http: HttpSettings = {
+    baseUrl: '',
+    method: 'POST',
+    authType: 'none',
+    token: '',
+    apiKeyName: '',
+    apiKeyValue: '',
+    headers: [],
+    bodyTemplate: '',
+  };
   smtp: SmtpSettings = { host: '', port: 587, username: '', password: '', useTls: true };
   pop: PopSettings = { host: '', port: 110, username: '', password: '', useSsl: false };
 
@@ -298,7 +393,18 @@ export class ProviderSettingsComponent implements OnInit {
             if (settingValue.trim()) {
               try {
                 const parsed = JSON.parse(settingValue) as unknown;
-                if (protocol === 'http') this.http = { ...this.http, ...(parsed as Partial<HttpSettings>) };
+                if (protocol === 'http') {
+                  const parsedHttp = parsed as Partial<HttpSettings> & { headers?: unknown };
+                  const normalizedHeaders = this.normalizeHeaders(parsedHttp.headers);
+                  this.http = {
+                    ...this.http,
+                    ...parsedHttp,
+                    headers: normalizedHeaders,
+                    method: (parsedHttp.method as HttpSettings['method']) || 'POST',
+                    authType: (parsedHttp.authType as HttpSettings['authType']) || 'none',
+                    bodyTemplate: typeof parsedHttp.bodyTemplate === 'string' ? parsedHttp.bodyTemplate : '',
+                  };
+                }
                 if (protocol === 'smtp') this.smtp = { ...this.smtp, ...(parsed as Partial<SmtpSettings>) };
                 if (protocol === 'pop') this.pop = { ...this.pop, ...(parsed as Partial<PopSettings>) };
               } catch {
@@ -314,10 +420,69 @@ export class ProviderSettingsComponent implements OnInit {
     });
   }
 
+  private normalizeHeaders(rawHeaders: unknown): Array<{ key: string; value: string }> {
+    if (Array.isArray(rawHeaders)) {
+      return rawHeaders
+        .filter((h): h is { key: string; value: string } => !!h && typeof h === 'object')
+        .map((h) => ({
+          key: String((h as { key?: unknown }).key ?? '').trim(),
+          value: String((h as { value?: unknown }).value ?? '').trim(),
+        }))
+        .filter((h) => h.key.length > 0);
+    }
+
+    if (rawHeaders && typeof rawHeaders === 'object') {
+      return Object.entries(rawHeaders as Record<string, unknown>)
+        .map(([key, value]) => ({ key: key.trim(), value: String(value ?? '').trim() }))
+        .filter((h) => h.key.length > 0);
+    }
+
+    return [];
+  }
+
+  addHeader(): void {
+    this.http.headers.push({ key: '', value: '' });
+  }
+
+  removeHeader(index: number): void {
+    this.http.headers.splice(index, 1);
+  }
+
+  private buildHttpHeaders(): Record<string, string> {
+    const headers: Record<string, string> = {};
+    for (const h of this.http.headers) {
+      const key = String(h.key ?? '').trim();
+      const value = String(h.value ?? '').trim();
+      if (key) {
+        headers[key] = value;
+      }
+    }
+
+    if (this.http.authType === 'bearer' && this.http.token.trim()) {
+      headers['Authorization'] = `Bearer ${this.http.token.trim()}`;
+    }
+    if (this.http.authType === 'apiKey' && this.http.apiKeyName.trim()) {
+      headers[this.http.apiKeyName.trim()] = this.http.apiKeyValue.trim();
+    }
+
+    return headers;
+  }
+
   private getActivePayload(): { settingKey: ProtocolKey; settingValue: string; isSensitive: boolean } {
     if (this.activeTab === 'http') {
-      const isSensitive = Boolean(this.http.password && this.http.password.trim());
-      return { settingKey: 'http', settingValue: JSON.stringify(this.http), isSensitive };
+      const httpPayload = {
+        baseUrl: this.http.baseUrl.trim(),
+        method: this.http.method,
+        headers: this.buildHttpHeaders(),
+        bodyTemplate: this.http.bodyTemplate,
+      };
+
+      const isSensitive = Boolean(
+        (this.http.authType === 'bearer' && this.http.token.trim()) ||
+        (this.http.authType === 'apiKey' && this.http.apiKeyValue.trim())
+      );
+
+      return { settingKey: 'http', settingValue: JSON.stringify(httpPayload), isSensitive };
     }
     if (this.activeTab === 'smtp') {
       const isSensitive = Boolean(this.smtp.password && this.smtp.password.trim());
@@ -330,6 +495,22 @@ export class ProviderSettingsComponent implements OnInit {
 
   saveActiveTab(): void {
     if (this.providerId <= 0) return;
+    if (this.activeTab === 'http') {
+      if (!this.http.baseUrl.trim()) {
+        this.saveMessage = 'Base URL is required.';
+        return;
+      }
+
+      if (this.http.authType === 'bearer' && !this.http.token.trim()) {
+        this.saveMessage = 'Token is required for Bearer Token auth.';
+        return;
+      }
+
+      if (this.http.authType === 'apiKey' && !this.http.apiKeyName.trim()) {
+        this.saveMessage = 'Key Name is required for API Key auth.';
+        return;
+      }
+    }
 
     const payload = this.getActivePayload();
     const existingId = this.settingIdByProtocol[payload.settingKey];

@@ -50,6 +50,9 @@ func (s *MappingService) AddChannelProvider(ctx context.Context, req domain.Crea
 	if req.ProviderID <= 0 {
 		return domain.ChannelProviderMasterMap{}, fmt.Errorf("provider_id is required and must be positive")
 	}
+	if req.Priority <= 0 {
+		return domain.ChannelProviderMasterMap{}, fmt.Errorf("priority is required and must be positive")
+	}
 	return s.repo.AddChannelProvider(ctx, req)
 }
 
@@ -71,6 +74,9 @@ func (s *MappingService) DeleteChannelProvider(ctx context.Context, id int) erro
 }
 
 func (s *MappingService) AddTemplateChannelLanguage(ctx context.Context, req domain.CreateTemplateChannelLanguageMasterMapRequest) (domain.TemplateChannelLanguageMasterMap, error) {
+	if req.TemplateGroupID <= 0 {
+		return domain.TemplateChannelLanguageMasterMap{}, fmt.Errorf("template_group_id is required and must be positive")
+	}
 	if req.TemplateID <= 0 {
 		return domain.TemplateChannelLanguageMasterMap{}, fmt.Errorf("template_id is required and must be positive")
 	}
